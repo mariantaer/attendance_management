@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/style.css">
+    
+    </head>
+<body>
+    <div class="login-container">
+        <h2>Login</h2>
+        <div class="form-group">
+            <input id="email" type="email" placeholder="Email" required>
+        </div>
+        <div class="form-group">
+            <input id="password" type="password" placeholder="Password" required>
+        </div>
+        <button onclick="login()">Login</button>
+        <div id="error" class="error"></div>
+    </div>
+
+    <script>
+        function login() {
+            const emailInput = document.getElementById('email');
+            const passwordInput = document.getElementById('password');
+            const errorDiv = document.getElementById('error');
+
+            errorDiv.textContent = '';
+            errorDiv.classList.remove('show');
+
+            fetch("http://localhost:3000/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: emailInput.value,
+                    password: passwordInput.value
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.role === "admin") {
+                    window.location = "admin-dashboard.html";
+                } else if (data.role === "teacher") {
+                    window.location = "teacher-dashboard.html";
+                } else {
+                    errorDiv.textContent = data.message || 'Login failed: Invalid role';
+                    errorDiv.classList.add('show');
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                errorDiv.textContent = 'Login failed. Please try again.';
+                errorDiv.classList.add('show');
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Dashboard</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+
+    <style>
+
+        body{
+            font-family: Arial, sans-serif;
+            background: #f4f6f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        header{
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .nav{
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .nav button{
+            padding: 10px 15px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .nav button:hover{
+            background: #0056b3;
+        }
+
+        .card{
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 15px;
+        }
+
+        table{
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        table th,
+        table td{
+            border: 1px solid #ccc;
+            padding: 10px;
+            text-align: center;
+        }
+
+        table th{
+            background: #007bff;
+            color: white;
+        }
+
+        select{
+            padding: 5px;
+            border-radius: 5px;
+        }
+
+        .save-btn{
+            margin-top: 15px;
+            padding: 10px 15px;
+            border: none;
+            background: green;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .save-btn:hover{
+            background: darkgreen;
+        }
+
+        .student-card,
+        .report-card{
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header>
+        <h1>👨‍🏫 Teacher Dashboard</h1>
+    </header>
+
+    <!-- NAVIGATION -->
+    <nav class="nav">
+
+        <button onclick="loadStudents()">
+            📋 View Students
+        </button>
+
+        <button onclick="showAttendance()">
+            📝 Mark Attendance
+        </button>
+
+        <button onclick="viewReports()">
+            📊 View Reports
+        </button>
+
+        <button onclick="logout()">
+            🚪 Logout
+        </button>
+
+    </nav>
+
+    <hr>
+
+    <!-- MAIN CONTENT -->
+    <main id="mainContent"></main>
+
+    <!-- JAVASCRIPT -->
+    <script>
+
+        // ======================================
+        // API URL
+        // ======================================
+        const API = "http://localhost:3000";
+
+// ======================================
+// LOAD STUDENTS (FIXED)
+// ======================================
+function loadStudents(){
+
+    fetch(`${API}/teacher/students`)
+    .then(res => res.json())
+    .then(data => {
+
+        let html = `
+            <div class="card">
+                <h2>📋 Students List</h2>
+        `;
+
+        if(data.length === 0){
+            html += `<p>No students found.</p>`;
+        }
+
+        data.forEach(student => {
+
+            html += `
+                <div class="student-card">
+
+                    <p><strong>Student ID:</strong> ${student.student_id}</p>
+                    <p><strong>Name:</strong> ${student.full_name}</p>
+                    <p><strong>Section:</strong> ${student.section}</p>
+                    <p><strong>Student Email:</strong> ${student.student_email}</p>
+                    <p><strong>Parent Email:</strong> ${student.parent_email}</p>
+
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+
+        document.getElementById("mainContent").innerHTML = html;
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to load students");
+    });
+}
+
+// ======================================
+// SHOW ATTENDANCE (FIXED)
+// ======================================
+function showAttendance(){
+
+    fetch(`${API}/teacher/students`)
+    .then(res => res.json())
+    .then(data => {
+
+        let html = `
+            <div class="card">
+                <h2>📝 Mark Attendance</h2>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Section</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        data.forEach(student => {
+
+            html += `
+                <tr>
+                    <td>${student.full_name}</td>
+                    <td>${student.section}</td>
+                    <td>
+
+                        <select id="status-${student.id}">
+                            <option value="Present">Present</option>
+                            <option value="Absent">Absent</option>
+                            <option value="Late">Late</option>
+                        </select>
+
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += `
+                    </tbody>
+                </table>
+
+                <button class="save-btn" onclick="saveAttendance()">
+                    💾 Save Attendance
+                </button>
+            </div>
+        `;
+
+        document.getElementById("mainContent").innerHTML = html;
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to load attendance");
+    });
+}
+
+// ======================================
+// SAVE ATTENDANCE (FIXED USING full_name SAFE)
+// ======================================
+function saveAttendance(){
+
+    fetch(`${API}/teacher/students`)
+    .then(res => res.json())
+    .then(students => {
+
+        students.forEach(student => {
+
+            const status = document.getElementById(`status-${student.id}`).value;
+
+            fetch(`${API}/attendance/mark`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    student_id: student.id,   // ✅ FIXED HERE
+                    status: status
+                })
+            });
+
+        });
+
+        alert("Attendance saved successfully!");
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to save attendance");
+    });
+}
+
+// ======================================
+// VIEW REPORTS (OPTIONAL CLEAN FIX)
+// ======================================
+function viewReports(){
+
+    fetch(`${API}/attendance/reports`)
+    .then(res => res.json())
+    .then(data => {
+
+        let html = `
+            <div class="card">
+                <h2>📊 Attendance Reports</h2>
+        `;
+
+        data.forEach(report => {
+
+            html += `
+                <div class="report-card">
+
+                    <p><strong>Name:</strong> ${report.full_name}</p>
+                    <p><strong>Section:</strong> ${report.section}</p>
+                    <p><strong>Status:</strong> ${report.status}</p>
+                    <p><strong>Date:</strong> ${report.date}</p>
+
+                </div>
+            `;
+        });
+
+        html += `</div>`;
+
+        document.getElementById("mainContent").innerHTML = html;
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to load reports");
+    });
+}
+
+// ======================================
+// LOGOUT
+// ======================================
+function logout(){
+    localStorage.clear();
+    window.location.href = "index.html";
+}
+
+// AUTO LOAD
+loadStudents();
+
+    </script>
+
+</body>
+</html>
