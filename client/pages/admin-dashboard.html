@@ -1,246 +1,366 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Admin Dashboard</title>
 
-    <link rel="stylesheet" href="../css/adashboard.css">
+            <link rel="stylesheet" href="../css/adashboard.css">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
+            <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        </head>
 
-<body>
+        <body>
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
+            <!-- SIDEBAR -->
+            <aside class="sidebar">
 
-        <div class="logo-area">
-            <img src="../images/PTC LOGO.png" alt="PTC Logo">
-            <h2>PTC Admin</h2>
-        </div>
+                <div class="logo-area">
+                    <img src="../images/PTC LOGO.png" alt="PTC Logo">
+                    <h2>PTC Admin</h2>
+                </div>
 
-        <!-- ADD TEACHER BUTTON -->
-        <button onclick="loadAddTeacher()">
-            Add Teacher
-        </button>
+                <!-- ADD TEACHER BUTTON -->
+                <button onclick="loadAddTeacher()">
+                    Add Teacher
+                </button>
 
-        <button onclick="loadTeachers()">
-            Manage Teachers
-        </button>
+                <button onclick="loadTeachers()">
+                    Manage Teachers
+                </button>
 
-        <button onclick="loadReports()">
-            Attendance Reports
-        </button>
+                <button onclick="loadReports()">
+                    Attendance Reports
+                </button>
 
-        <button class="logout-btn" onclick="logout()">
-            Logout
-        </button>
+                <button class="logout-btn" onclick="logout()">
+                    Logout
+                </button>
 
-    </aside>
+            </aside>
 
-    <!-- MAIN -->
-    <div class="main">
+            <!-- MAIN -->
+            <div class="main">
 
-        <!-- TOPBAR -->
-        <header class="topbar">
-            <h1>Admin Dashboard</h1>
-        </header>
+                <!-- TOPBAR -->
+                <header class="topbar">
+                    <h1>Admin Dashboard</h1>
+                </header>
 
-        <!-- CONTENT -->
-        <section id="mainContent"></section>
+                <!-- CONTENT -->
+                <section id="mainContent"></section>
 
-    </div>
+            </div>
 
-<script>
+        <script>
 
-const API = "http://localhost:3000";
+        const API = "http://localhost:3000";
 
-// ======================================
-// LOAD ADD TEACHER PAGE
-// ======================================
-function loadAddTeacher() {
+        // ======================================
+        // LOAD ADD TEACHER PAGE
+        // ======================================
+        function loadAddTeacher() {
 
-    let html = `
+            let html = `
 
-        <div class="card">
+                <div class="card">
 
-            <h2>Add Teacher</h2>
+                    <h2>Add Teacher</h2>
 
-            <input 
-                type="text" 
-                id="name" 
-                placeholder="Enter Teacher Name"
-            >
+                    <input 
+                        type="text" 
+                        id="name" 
+                        placeholder="Enter Teacher Name"
+                    >
 
-            <input 
-                type="email" 
-                id="email" 
-                placeholder="Enter Teacher Email"
-            >
+                    <input 
+                        type="email" 
+                        id="email" 
+                        placeholder="Enter Teacher Email"
+                    >
 
-            <input 
-                type="password" 
-                id="password" 
-                placeholder="Enter Password"
-            >
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="Enter Password"
+                    >
 
-            <button class="save-btn" onclick="addTeacher()">
-                Save Teacher
-            </button>
-
-        </div>
-    `;
-
-    document.getElementById("mainContent").innerHTML = html;
-}
-
-// ======================================
-// LOAD TEACHERS
-// ======================================
-function loadTeachers() {
-
-    fetch(`${API}/admin/teachers`)
-    .then(res => res.json())
-    .then(data => {
-
-        let html = `
-
-            <!-- MANAGE TEACHERS -->
-            <div class="card">
-
-                <h2>Manage Teachers</h2>
-
-                <div class="teacher-grid">
-        `;
-
-        if (data.length === 0) {
-            html += `<p>No teachers found.</p>`;
-        }
-
-        data.forEach(teacher => {
-
-            html += `
-                <div class="teacher-card">
-
-                    <p><strong>Name:</strong> ${teacher.name}</p>
-                    <p><strong>Email:</strong> ${teacher.email}</p>
+                    <button class="save-btn" onclick="addTeacher()">
+                        Save Teacher
+                    </button>
 
                 </div>
             `;
-        });
 
-        html += `
-                </div>
+            document.getElementById("mainContent").innerHTML = html;
+        }
+
+        // ======================================
+        // LOAD TEACHERS
+        // ======================================
+        let teacherData = [];
+
+        function loadTeachers() {
+
+            fetch(`${API}/admin/teachers`)
+            .then(res => res.json())
+            .then(data => {
+
+                teacherData = data;
+
+                let html = `
+                    <div class="card">
+                        <h2>Manage Teachers</h2>
+
+                        <input 
+                            type="text" 
+                            id="teacherSearch" 
+                            class="search-box"
+                            placeholder="Search teacher..."
+                            onkeyup="filterTeachers()"
+                        >
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="teacherTableBody">
+                                ${renderTeacherRows(data)}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                document.getElementById("mainContent").innerHTML = html;
+            });
+        }
+
+        // ======================================
+        // ADD TEACHER
+        // ======================================
+        function addTeacher() {
+
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            if (!name || !email || !password) {
+                alert("Please fill in all fields");
+                return;
+            }
+
+            fetch(`${API}/admin/teacher`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ name, email, password })
+            })
+            .then(res => res.text())
+            .then(msg => {
+                alert(msg);
+
+                // AFTER ADDING, GO TO MANAGE TEACHERS
+                loadTeachers();
+            })
+            .catch(err => {
+                console.error(err);
+                alert("Failed to add teacher");
+            });
+        }
+
+        function renderTeachers(data, html = "") {
+
+            let rows = "";
+
+            if (data.length === 0) {
+                rows = `
+                    <tr>
+                        <td colspan="2">No teachers found</td>
+                    </tr>
+                `;
+            } else {
+                data.forEach(t => {
+                    rows += `
+                        <tr>
+                            <td>${t.name}</td>
+                            <td>${t.email}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const table = html + rows + `
+                    </tbody>
+                </table>
             </div>
-        `;
+            `;
 
-        document.getElementById("mainContent").innerHTML = html;
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Failed to load teachers");
+            document.getElementById("mainContent").innerHTML = table;
+        }
+
+        function renderTeacherRows(data) {
+
+            if (!data || data.length === 0) {
+                return `<tr><td colspan="2">No teachers found</td></tr>`;
+            }
+
+            return data.map(t => `
+                <tr>
+                    <td>${t.name}</td>
+                    <td>${t.email}</td>
+                </tr>
+            `).join("");
+        }
+
+        function filterTeachers() {
+
+            const value = document.getElementById("teacherSearch").value.toLowerCase();
+
+            const filtered = teacherData.filter(t =>
+                t.name.toLowerCase().includes(value) ||
+                t.email.toLowerCase().includes(value)
+            );
+
+            document.getElementById("teacherTableBody").innerHTML = renderTeacherRows(filtered);
+        }
+
+        // ======================================
+        // LOAD REPORTS
+        // ======================================
+        let reportData = [];
+
+        function loadReports() {
+
+            fetch(`${API}/attendance/reports`)
+            .then(res => res.json())
+            .then(data => {
+
+                reportData = data;
+
+                let html = `
+                    <div class="card">
+                        <h2>Attendance Reports</h2>
+
+                        <input 
+                            type="text" 
+                            id="reportSearch" 
+                            class="search-box"
+                            placeholder="Search name, section, status..."
+                            onkeyup="filterReports()"
+                        >
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Name</th>
+                                    <th>Section</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="reportTableBody">
+                                ${renderReportRows(data)}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+
+                document.getElementById("mainContent").innerHTML = html;
+            });
+        }
+        function renderReports(data, html = "") {
+
+            let rows = "";
+
+            if (data.length === 0) {
+                rows = `
+                    <tr>
+                        <td colspan="6">No reports found</td>
+                    </tr>
+                `;
+            } else {
+                data.forEach(r => {
+                    rows += `
+                        <tr>
+                            <td>${r.student_id}</td>
+                            <td>${r.full_name}</td>
+                            <td>${r.section}</td>
+                            <td>${r.status}</td>
+                            <td>${r.date}</td>
+                            <td>${r.time}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            const table = html + rows + `
+                    </tbody>
+                </table>
+            </div>
+            `;
+
+            document.getElementById("mainContent").innerHTML = table;
+        }
+
+        function filterReports() {
+
+    const value = document.getElementById("reportSearch").value.toLowerCase();
+
+    const filtered = reportData.filter(r => {
+
+        return (
+            String(r.student_id || "").toLowerCase().includes(value) ||
+            String(r.full_name || "").toLowerCase().includes(value) ||
+            String(r.section || "").toLowerCase().includes(value) ||
+            String(r.status || "").toLowerCase().includes(value) ||
+            String(r.date || "").toLowerCase().includes(value)
+        );
+
     });
+
+    document.getElementById("reportTableBody").innerHTML =
+        renderReportRows(filtered);
 }
 
-// ======================================
-// ADD TEACHER
-// ======================================
-function addTeacher() {
+        function renderReportRows(data) {
 
-    const name = document.getElementById("name").value;
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    if (!name || !email || !password) {
-        alert("Please fill in all fields");
-        return;
+    if (!data || data.length === 0) {
+        return `<tr><td colspan="6">No reports found</td></tr>`;
     }
 
-    fetch(`${API}/admin/teacher`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ name, email, password })
-    })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
+    return data.map(r => `
+        <tr>
+            <td>${r.student_id ?? ""}</td>
+            <td>${r.full_name ?? ""}</td>
+            <td>${r.section ?? ""}</td>
+            <td>${r.status ?? ""}</td>
+            <td>${r.date ?? ""}</td>
+            <td>${r.time ?? ""}</td>
+        </tr>
+    `).join("");
+}   
 
-        // AFTER ADDING, GO TO MANAGE TEACHERS
-        loadTeachers();
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Failed to add teacher");
-    });
-}
-
-// ======================================
-// LOAD REPORTS
-// ======================================
-function loadReports() {
-
-    fetch(`${API}/attendance/reports`)
-    .then(res => res.json())
-    .then(data => {
-
-        let html = `
-
-            <div class="card">
-
-                <h2>Attendance Reports</h2>
-
-                <div class="report-grid">
-        `;
-
-        if (data.length === 0) {
-            html += `<p>No attendance reports found.</p>`;
+        // ======================================
+        // LOGOUT
+        // ======================================
+        function logout() {
+            localStorage.clear();
+            alert("Logged out successfully");
+            window.location.href = "index.html";
         }
 
-        data.forEach(report => {
+        // AUTO LOAD
+        loadTeachers();
 
-            html += `
-                <div class="report-card">
+        </script>
 
-                    <p><strong>Student ID:</strong> ${report.student_id}</p>
-                    <p><strong>Name:</strong> ${report.full_name}</p>
-                    <p><strong>Section:</strong> ${report.section}</p>
-                    <p><strong>Status:</strong> ${report.status}</p>
-                    <p><strong>Date:</strong> ${report.date}</p>
-                    <p><strong>Time:</strong> ${report.time}</p>
-
-                </div>
-            `;
-        });
-
-        html += `
-                </div>
-            </div>
-        `;
-
-        document.getElementById("mainContent").innerHTML = html;
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Failed to load reports");
-    });
-}
-
-// ======================================
-// LOGOUT
-// ======================================
-function logout() {
-    localStorage.clear();
-    alert("Logged out successfully");
-    window.location.href = "index.html";
-}
-
-// AUTO LOAD
-loadTeachers();
-
-</script>
-
-</body>
-</html>
+        </body>
+        </html>

@@ -132,5 +132,27 @@ button:hover{
     display:block;
 }
 
-/* teacher-dashboard */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
 
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px; /* space for icon */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    user-select: none;
+    color: #555;
+    transition: 0.2s;
+}
+
+.toggle-password:hover {
+    color: #166534;
+}

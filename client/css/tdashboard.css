@@ -232,6 +232,10 @@ table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 15px;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 table th,
@@ -239,11 +243,16 @@ table td {
     border: 1px solid #ddd;
     padding: 12px;
     text-align: left;
+    font-size: 14px;
 }
 
 table th {
-    background: #166534;
+    background: #166534; /* your main green */
     color: white;
+    padding: 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
 }
 
 /* ================= FILTERS ================= */

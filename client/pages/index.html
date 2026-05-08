@@ -23,9 +23,15 @@
             <input id="email" type="email" placeholder="Email" required>
         </div>
 
-        <div class="form-group">
-            <input id="password" type="password" placeholder="Password" required>
-        </div>
+        <div class="form-group password-wrapper">
+
+    <input id="password" type="password" placeholder="Password" required>
+
+    <span class="toggle-password" onclick="togglePassword()">
+        👁
+    </span>
+
+</div>
 
         <button onclick="login()">Login</button>
 
@@ -73,6 +79,20 @@
                 errorDiv.classList.add('show');
             });
         }
+
+        function togglePassword() {
+            const password = document.getElementById("password");
+            const toggle = document.querySelector(".toggle-password");
+
+            if (password.type === "password") {
+                password.type = "text";
+                toggle.textContent = "👁";
+            } else {
+                password.type = "password";
+                toggle.textContent = "👁";
+            }
+        }
+
     </script>
 
 </body>
