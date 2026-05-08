@@ -5,335 +5,242 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/adashboard.css">
 
-    <style>
-
-        body{
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            margin: 0;
-            padding: 20px;
-        }
-
-        header{
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .nav{
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .nav button{
-            padding: 10px 15px;
-            border: none;
-            background: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .nav button:hover{
-            background: #0056b3;
-        }
-
-        .card{
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
-        }
-
-        input{
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        .save-btn{
-            margin-top: 10px;
-            padding: 10px 15px;
-            border: none;
-            background: green;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .save-btn:hover{
-            background: darkgreen;
-        }
-
-        .teacher-card,
-        .report-card{
-            background: #fafafa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            margin-top: 10px;
-        }
-
-        hr{
-            margin: 20px 0;
-        }
-
-    </style>
-
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
 
-    <!-- HEADER -->
-    <header>
-        <h1>👨‍💼 Admin Dashboard</h1>
-    </header>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <!-- NAVIGATION -->
-    <div class="nav">
+        <div class="logo-area">
+            <img src="../images/PTC LOGO.png" alt="PTC Logo">
+            <h2>PTC Admin</h2>
+        </div>
+
+        <!-- ADD TEACHER BUTTON -->
+        <button onclick="loadAddTeacher()">
+            Add Teacher
+        </button>
 
         <button onclick="loadTeachers()">
-            👨‍🏫 Manage Teachers
+            Manage Teachers
         </button>
 
         <button onclick="loadReports()">
-            📊 Attendance Reports
+            Attendance Reports
         </button>
 
-        <button onclick="logout()">
-            🚪 Logout
+        <button class="logout-btn" onclick="logout()">
+            Logout
         </button>
+
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <h1>Admin Dashboard</h1>
+        </header>
+
+        <!-- CONTENT -->
+        <section id="mainContent"></section>
 
     </div>
 
-    <hr>
+<script>
 
-    <!-- MAIN CONTENT -->
-    <section id="mainContent"></section>
+const API = "http://localhost:3000";
 
-    <!-- JAVASCRIPT -->
-    <script>
+// ======================================
+// LOAD ADD TEACHER PAGE
+// ======================================
+function loadAddTeacher() {
 
-        // ======================================
-        // API URL
-        // ======================================
-        const API = "http://localhost:3000";
+    let html = `
 
-        // ======================================
-        // LOAD TEACHERS
-        // ======================================
-        function loadTeachers() {
+        <div class="card">
 
-            fetch(`${API}/admin/teachers`)
-            .then(res => res.json())
-            .then(data => {
+            <h2>Add Teacher</h2>
 
-                let html = `
+            <input 
+                type="text" 
+                id="name" 
+                placeholder="Enter Teacher Name"
+            >
 
-                    <div class="card">
+            <input 
+                type="email" 
+                id="email" 
+                placeholder="Enter Teacher Email"
+            >
 
-                        <h2>👨‍🏫 Manage Teachers</h2>
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="Enter Password"
+            >
 
-                        <h3>➕ Add Teacher</h3>
+            <button class="save-btn" onclick="addTeacher()">
+                Save Teacher
+            </button>
 
-                        <input 
-                            type="text" 
-                            id="name" 
-                            placeholder="Enter Teacher Name"
-                        >
+        </div>
+    `;
 
-                        <input 
-                            type="email" 
-                            id="email" 
-                            placeholder="Enter Teacher Email"
-                        >
+    document.getElementById("mainContent").innerHTML = html;
+}
 
-                        <input 
-                            type="password" 
-                            id="password" 
-                            placeholder="Enter Password"
-                        >
+// ======================================
+// LOAD TEACHERS
+// ======================================
+function loadTeachers() {
 
-                        <button 
-                            class="save-btn"
-                            onclick="addTeacher()"
-                        >
-                            💾 Save Teacher
-                        </button>
+    fetch(`${API}/admin/teachers`)
+    .then(res => res.json())
+    .then(data => {
 
-                    </div>
+        let html = `
 
-                    <div class="card">
+            <!-- MANAGE TEACHERS -->
+            <div class="card">
 
-                        <h3>📋 Teachers List</h3>
+                <h2>Manage Teachers</h2>
 
-                `;
+                <div class="teacher-grid">
+        `;
 
-                // NO TEACHERS
-                if(data.length === 0){
-
-                    html += `
-                        <p>No teachers found.</p>
-                    `;
-                }
-
-                // DISPLAY TEACHERS
-                data.forEach(teacher => {
-
-                    html += `
-
-                        <div class="teacher-card">
-
-                            <p>
-                                <strong>Name:</strong>
-                                ${teacher.name}
-                            </p>
-
-                            <p>
-                                <strong>Email:</strong>
-                                ${teacher.email}
-                            </p>
-
-                        </div>
-
-                    `;
-                });
-
-                html += `</div>`;
-
-                document.getElementById("mainContent").innerHTML = html;
-            })
-            .catch(err => {
-
-                console.error(err);
-
-                alert("Failed to load teachers");
-            });
+        if (data.length === 0) {
+            html += `<p>No teachers found.</p>`;
         }
 
-        // ======================================
-        // ADD TEACHER
-        // ======================================
-        function addTeacher() {
+        data.forEach(teacher => {
 
-            const name = document.getElementById("name").value;
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+            html += `
+                <div class="teacher-card">
 
-            // VALIDATION
-            if(!name || !email || !password){
+                    <p><strong>Name:</strong> ${teacher.name}</p>
+                    <p><strong>Email:</strong> ${teacher.email}</p>
 
-                alert("Please fill in all fields");
+                </div>
+            `;
+        });
 
-                return;
-            }
+        html += `
+                </div>
+            </div>
+        `;
 
-            fetch(`${API}/admin/teacher`, {
+        document.getElementById("mainContent").innerHTML = html;
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to load teachers");
+    });
+}
 
-                method: "POST",
+// ======================================
+// ADD TEACHER
+// ======================================
+function addTeacher() {
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+    const name = document.getElementById("name").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-                body: JSON.stringify({
-                    name,
-                    email,
-                    password
-                })
-            })
-            .then(res => res.text())
-            .then(msg => {
+    if (!name || !email || !password) {
+        alert("Please fill in all fields");
+        return;
+    }
 
-                alert(msg);
+    fetch(`${API}/admin/teacher`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ name, email, password })
+    })
+    .then(res => res.text())
+    .then(msg => {
+        alert(msg);
 
-                // RELOAD TEACHERS
-                loadTeachers();
-            })
-            .catch(err => {
-
-                console.error(err);
-
-                alert("Failed to add teacher");
-            });
-        }
-
-        // ======================================
-        // LOAD REPORTS
-        // ======================================
-        function loadReports() {
-
-            fetch(`${API}/attendance/reports`)
-            .then(res => res.json())
-            .then(data => {
-
-                let html = `
-
-                    <div class="card">
-
-                        <h2>📊 Attendance Reports</h2>
-
-                `;
-
-                // NO REPORTS
-                if(data.length === 0){
-
-                 html += `
-                    <p>No attendance reports found.</p>
-                     `;
-                 }
-
-                // DISPLAY REPORTS
-                 data.forEach(report => {
-
-                html += `
-                    <div class="report-card">
-
-                        <p><strong>Student ID:</strong> ${report.student_id}</p>
-                        <p><strong>Name:</strong> ${report.full_name}</p>
-                        <p><strong>Section:</strong> ${report.section}</p>
-                        <p><strong>Status:</strong> ${report.status}</p>
-                        <p><strong>Date:</strong> ${report.date}</p>
-                        <p><strong>Time:</strong> ${report.time}</p>
-
-                    </div>
-                `;
-            });
-
-                html += `</div>`;
-
-                document.getElementById("mainContent").innerHTML = html;
-            })
-            .catch(err => {
-
-                console.error(err);
-
-                alert("Failed to load reports");
-            });
-        }
-
-        // ======================================
-        // LOGOUT
-        // ======================================
-        function logout() {
-
-            localStorage.clear();
-
-            alert("Logged out successfully");
-
-            window.location.href = "index.html";
-        }
-
-        // ======================================
-        // AUTO LOAD TEACHERS
-        // ======================================
+        // AFTER ADDING, GO TO MANAGE TEACHERS
         loadTeachers();
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to add teacher");
+    });
+}
 
-    </script>
+// ======================================
+// LOAD REPORTS
+// ======================================
+function loadReports() {
+
+    fetch(`${API}/attendance/reports`)
+    .then(res => res.json())
+    .then(data => {
+
+        let html = `
+
+            <div class="card">
+
+                <h2>Attendance Reports</h2>
+
+                <div class="report-grid">
+        `;
+
+        if (data.length === 0) {
+            html += `<p>No attendance reports found.</p>`;
+        }
+
+        data.forEach(report => {
+
+            html += `
+                <div class="report-card">
+
+                    <p><strong>Student ID:</strong> ${report.student_id}</p>
+                    <p><strong>Name:</strong> ${report.full_name}</p>
+                    <p><strong>Section:</strong> ${report.section}</p>
+                    <p><strong>Status:</strong> ${report.status}</p>
+                    <p><strong>Date:</strong> ${report.date}</p>
+                    <p><strong>Time:</strong> ${report.time}</p>
+
+                </div>
+            `;
+        });
+
+        html += `
+                </div>
+            </div>
+        `;
+
+        document.getElementById("mainContent").innerHTML = html;
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to load reports");
+    });
+}
+
+// ======================================
+// LOGOUT
+// ======================================
+function logout() {
+    localStorage.clear();
+    alert("Logged out successfully");
+    window.location.href = "index.html";
+}
+
+// AUTO LOAD
+loadTeachers();
+
+</script>
 
 </body>
 </html>

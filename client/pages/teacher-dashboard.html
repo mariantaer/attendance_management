@@ -5,325 +5,429 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard</title>
 
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/tdashboard.css">
 
-    <style>
-
-        body{
-            font-family: Arial, sans-serif;
-            background: #f4f6f9;
-            margin: 0;
-            padding: 20px;
-        }
-
-        header{
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .nav{
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .nav button{
-            padding: 10px 15px;
-            border: none;
-            background: #007bff;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .nav button:hover{
-            background: #0056b3;
-        }
-
-        .card{
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            margin-bottom: 15px;
-        }
-
-        table{
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        table th,
-        table td{
-            border: 1px solid #ccc;
-            padding: 10px;
-            text-align: center;
-        }
-
-        table th{
-            background: #007bff;
-            color: white;
-        }
-
-        select{
-            padding: 5px;
-            border-radius: 5px;
-        }
-
-        .save-btn{
-            margin-top: 15px;
-            padding: 10px 15px;
-            border: none;
-            background: green;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .save-btn:hover{
-            background: darkgreen;
-        }
-
-        .student-card,
-        .report-card{
-            background: #fafafa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #ddd;
-            margin-top: 10px;
-        }
-
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 </head>
+
+<!-- ATTENDANCE MODAL -->
+<div id="attendanceModal">
+    <div class="modal-box">
+
+        <h2>Mark Attendance</h2>
+
+        <h3 id="modalStudentName"></h3>
+
+        <select id="modalStatus">
+            <option value="Present">Present</option>
+            <option value="Absent">Absent</option>
+            <option value="Late">Late</option>
+        </select>
+
+        <div class="modal-buttons">
+
+            <button class="btn-save" onclick="saveSingleAttendance()">
+                Save
+            </button>
+
+            <button class="btn-cancel" onclick="closeModal()">
+                Cancel
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
 <body>
 
-    <!-- HEADER -->
-    <header>
-        <h1>👨‍🏫 Teacher Dashboard</h1>
-    </header>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-    <!-- NAVIGATION -->
-    <nav class="nav">
+        <div class="logo-area">
+            <img src="../images/PTC LOGO.png" alt="Logo">
+            <h2>PTC AMS</h2>
+        </div>
 
         <button onclick="loadStudents()">
-            📋 View Students
+            Students
         </button>
 
         <button onclick="showAttendance()">
-            📝 Mark Attendance
+            Attendance
         </button>
 
         <button onclick="viewReports()">
-            📊 View Reports
+            Reports
         </button>
 
-        <button onclick="logout()">
-            🚪 Logout
+        <button class="logout-btn" onclick="logout()">
+            Logout
         </button>
 
-    </nav>
+    </aside>
 
-    <hr>
+    <!-- MAIN -->
+    <div class="main">
 
-    <!-- MAIN CONTENT -->
-    <main id="mainContent"></main>
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <h1>Teacher Dashboard</h1>
+        </header>
 
-    <!-- JAVASCRIPT -->
-    <script>
+        <!-- CONTENT -->
+        <main id="mainContent"></main>
 
-        // ======================================
-        // API URL
-        // ======================================
-        const API = "http://localhost:3000";
+    </div>
 
-// ======================================
-// LOAD STUDENTS (FIXED)
-// ======================================
-function loadStudents(){
+<script>
 
-    fetch(`${API}/teacher/students`)
-    .then(res => res.json())
-    .then(data => {
+    let selectedStudentId = null;
+    let selectedStudentName = "";
+
+    const API = "http://localhost:3000";
+
+    // ================= FIXED POPUP =================
+    function openAttendancePopup(student){
+
+        selectedStudentId = student.id; // ✅ FIXED (was student.student_id)
+        selectedStudentName = student.full_name;
+
+        document.getElementById("modalStudentName").innerText =
+            student.full_name;
+
+        document.getElementById("attendanceModal").style.display = "flex";
+    }
+
+    function closeModal(){
+        document.getElementById("attendanceModal").style.display = "none";
+    }
+
+    function saveSingleAttendance(){
+
+        const status = document.getElementById("modalStatus").value;
+
+        fetch(`${API}/attendance/mark`, {
+            method:"POST",
+            headers:{
+                "Content-Type":"application/json"
+            },
+            body:JSON.stringify({
+                student_id: selectedStudentId,
+                status: status
+            })
+        })
+        .then(res => res.text())
+        .then(() => {
+            alert(`${selectedStudentName} marked ${status}`);
+            closeModal();
+        });
+    }
+
+    // ======================================
+    function groupBySection(data){
+
+        const grouped = {};
+
+        data.sort((a, b) => {
+
+            const genderCompare =
+            (a.gender || "")
+            .localeCompare(b.gender || "");
+
+            if(genderCompare !== 0){
+                return genderCompare;
+            }
+
+            return (a.full_name || "")
+            .localeCompare(b.full_name || "");
+        });
+
+        data.forEach(item => {
+
+            if(!grouped[item.section]){
+                grouped[item.section] = [];
+            }
+
+            grouped[item.section].push(item);
+        });
+
+        return grouped;
+    }
+
+    // ======================================
+    function createSectionDropdown(
+        sections,
+        selectedValue,
+        functionName,
+        selectedDate = ""
+    ){
 
         let html = `
-            <div class="card">
-                <h2>📋 Students List</h2>
+            <div class="section-filter">
+                <label>Select Section:</label>
+                <select onchange="${functionName}(this.value, '${selectedDate}')">
+                    <option value="">All Sections</option>
         `;
 
-        if(data.length === 0){
-            html += `<p>No students found.</p>`;
-        }
-
-        data.forEach(student => {
+        sections.forEach(section => {
 
             html += `
-                <div class="student-card">
-
-                    <p><strong>Student ID:</strong> ${student.student_id}</p>
-                    <p><strong>Name:</strong> ${student.full_name}</p>
-                    <p><strong>Section:</strong> ${student.section}</p>
-                    <p><strong>Student Email:</strong> ${student.student_email}</p>
-                    <p><strong>Parent Email:</strong> ${student.parent_email}</p>
-
-                </div>
+                <option value="${section}" ${selectedValue === section ? "selected" : ""}>
+                    ${section}
+                </option>
             `;
         });
 
-        html += `</div>`;
+        html += `</select></div>`;
+        return html;
+    }
 
-        document.getElementById("mainContent").innerHTML = html;
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Failed to load students");
-    });
-}
+    // ======================================
+    function loadStudents(selectedSection = ""){
 
-// ======================================
-// SHOW ATTENDANCE (FIXED)
-// ======================================
-function showAttendance(){
+        fetch(`${API}/teacher/students`)
+        .then(res => res.json())
+        .then(data => {
 
-    fetch(`${API}/teacher/students`)
-    .then(res => res.json())
-    .then(data => {
+            const grouped = groupBySection(data);
+            const sections = Object.keys(grouped);
 
-        let html = `
-            <div class="card">
-                <h2>📝 Mark Attendance</h2>
+            let html = `<div class="card"><h2>Students List</h2>`;
 
-                <table>
-                    <thead>
+            html += createSectionDropdown(sections, selectedSection, "loadStudents");
+
+            for(const section in grouped){
+
+                if(selectedSection && section !== selectedSection) continue;
+
+                html += `<h3>Section: ${section}</h3><table><thead><tr>
+                    <th>ID</th><th>Name</th><th>Gender</th><th>Email</th><th>Parent</th>
+                </tr></thead><tbody>`;
+
+                grouped[section].forEach(student => {
+
+                    html += `
                         <tr>
-                            <th>Student</th>
-                            <th>Section</th>
-                            <th>Status</th>
+                            <td>${student.id}</td>
+                            <td>${student.full_name}</td>
+                            <td>${student.gender}</td>
+                            <td>${student.student_email}</td>
+                            <td>${student.parent_email}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-        `;
+                    `;
+                });
 
-        data.forEach(student => {
+                html += `</tbody></table><br>`;
+            }
+
+            html += `</div>`;
+            document.getElementById("mainContent").innerHTML = html;
+        });
+    }
+
+    // ======================================
+    function showAttendance(selectedSection = ""){
+
+        fetch(`${API}/teacher/students`)
+        .then(res => res.json())
+        .then(data => {
+
+            const grouped = groupBySection(data);
+            const sections = Object.keys(grouped);
+
+            let html = `<div class="card"><h2>Mark Attendance</h2>`;
+
+            html += createSectionDropdown(sections, selectedSection, "showAttendance");
+
+            for(const section in grouped){
+
+                if(selectedSection && section !== selectedSection) continue;
+
+                html += `<h3>Section: ${section}</h3><table><thead><tr>
+                    <th>Name</th><th>Gender</th><th>Status</th>
+                </tr></thead><tbody>`;
+
+                grouped[section].forEach(student => {
+
+                    html += `
+                        <tr>
+                            <td style="cursor:pointer;color:#166534;font-weight:bold"
+                                onclick='openAttendancePopup(${JSON.stringify(student)})'>
+                                ${student.full_name}
+                            </td>
+
+                            <td>${student.gender}</td>
+
+                            <td>
+                                <select id="status-${student.id}">
+                                    <option value="Present">Present</option>
+                                    <option value="Absent">Absent</option>
+                                    <option value="Late">Late</option>
+                                </select>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                html += `</tbody></table><br>`;
+            }
 
             html += `
-                <tr>
-                    <td>${student.full_name}</td>
-                    <td>${student.section}</td>
-                    <td>
+                <div class="save-wrapper">
+                    <button class="btn-save-attendance" onclick="saveAttendance()">
+                        Save Attendance
+                    </button>
+                </div>
+            </div>`;
 
-                        <select id="status-${student.id}">
-                            <option value="Present">Present</option>
-                            <option value="Absent">Absent</option>
-                            <option value="Late">Late</option>
-                        </select>
-
-                    </td>
-                </tr>
-            `;
+            document.getElementById("mainContent").innerHTML = html;
         });
+    }
 
-        html += `
-                    </tbody>
-                </table>
+    // ======================================
+    function saveAttendance(){
 
-                <button class="save-btn" onclick="saveAttendance()">
-                    💾 Save Attendance
-                </button>
-            </div>
-        `;
+    const rows = document.querySelectorAll("select[id^='status-']");
 
-        document.getElementById("mainContent").innerHTML = html;
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Failed to load attendance");
-    });
-}
+    const requests = [];
 
-// ======================================
-// SAVE ATTENDANCE (FIXED USING full_name SAFE)
-// ======================================
-function saveAttendance(){
+    rows.forEach(select => {
 
-    fetch(`${API}/teacher/students`)
-    .then(res => res.json())
-    .then(students => {
+        const studentId = select.id.replace("status-", "");
+        const status = select.value;
 
-        students.forEach(student => {
-
-            const status = document.getElementById(`status-${student.id}`).value;
-
+        requests.push(
             fetch(`${API}/attendance/mark`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify({
-                    student_id: student.id,   // ✅ FIXED HERE
+                    student_id: studentId,
                     status: status
                 })
-            });
+            })
+        );
+    });
 
-        });
-
+    Promise.all(requests)
+    .then(() => {
         alert("Attendance saved successfully!");
     })
     .catch(err => {
         console.error(err);
-        alert("Failed to save attendance");
+        alert("Error saving attendance");
     });
 }
 
-// ======================================
-// VIEW REPORTS (OPTIONAL CLEAN FIX)
-// ======================================
-function viewReports(){
+    // ======================================
+    // ✅ YOUR REPORTS FUNCTION (UNCHANGED)
+    // ======================================
+    function viewReports(selectedSection = "", selectedDate = "") {
 
-    fetch(`${API}/attendance/reports`)
+    let url = `${API}/attendance/reports`;
+
+    if (selectedDate) {
+        url += `?date=${selectedDate}`;
+    }
+
+    fetch(url)
     .then(res => res.json())
     .then(data => {
 
-        let html = `
-            <div class="card">
-                <h2>📊 Attendance Reports</h2>
+        // GROUP BY SECTION (no sorting now)
+        const grouped = {};
+
+        data.forEach(item => {
+            if (!grouped[item.section]) {
+                grouped[item.section] = [];
+            }
+            grouped[item.section].push(item);
+        });
+
+        const sections = Object.keys(grouped);
+
+        let html = `<div class="card"><h2>Attendance Reports</h2>`;
+
+        // FILTER UI (section + date only)
+        html += `
+            <div class="filters">
+
+                <div class="section-filter">
+                    <label>Section:</label>
+                    <select onchange="viewReports(this.value, '${selectedDate}')">
+                        <option value="">All Sections</option>
+                        ${sections.map(sec => `
+                            <option value="${sec}" ${sec === selectedSection ? "selected" : ""}>
+                                ${sec}
+                            </option>
+                        `).join("")}
+                    </select>
+                </div>
+
+                <div class="date-filter">
+                    <label>Date:</label>
+                    <input type="date"
+                        value="${selectedDate}"
+                        onchange="viewReports('${selectedSection}', this.value)">
+                </div>
+
+            </div>
         `;
 
-        data.forEach(report => {
+        // TABLES
+        for (const section in grouped) {
+
+            if (selectedSection && section !== selectedSection) continue;
 
             html += `
-                <div class="report-card">
-
-                    <p><strong>Name:</strong> ${report.full_name}</p>
-                    <p><strong>Section:</strong> ${report.section}</p>
-                    <p><strong>Status:</strong> ${report.status}</p>
-                    <p><strong>Date:</strong> ${report.date}</p>
-
-                </div>
+                <h3>Section: ${section}</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student Name</th>
+                            <th>Gender</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
             `;
-        });
+
+            grouped[section].forEach(report => {
+
+                html += `
+                    <tr>
+                        <td>${report.full_name}</td>
+                        <td>${report.gender}</td>
+                        <td>${report.status}</td>
+                        <td>${report.date}</td>
+                        <td>${report.time}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table><br>`;
+        }
 
         html += `</div>`;
 
         document.getElementById("mainContent").innerHTML = html;
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Failed to load reports");
     });
 }
 
-// ======================================
-// LOGOUT
-// ======================================
-function logout(){
-    localStorage.clear();
-    window.location.href = "index.html";
-}
+    // ======================================
+    function logout(){
+        localStorage.clear();
+        window.location.href = "index.html";
+    }
 
-// AUTO LOAD
-loadStudents();
+    loadStudents();
 
-    </script>
+</script>
 
 </body>
-</html>
+</html> 

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 05, 2026 at 08:38 PM
+-- Generation Time: May 08, 2026 at 04:21 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -31,8 +31,26 @@ CREATE TABLE `attendance` (
   `id` int(11) NOT NULL,
   `student_id` int(11) NOT NULL,
   `status` enum('Present','Absent','Late') NOT NULL,
-  `date` date NOT NULL
+  `date` date NOT NULL,
+  `time` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`id`, `student_id`, `status`, `date`, `time`) VALUES
+(6, 1, 'Present', '2026-05-07', NULL),
+(7, 1, 'Late', '2026-05-07', NULL),
+(8, 1, 'Present', '2026-05-07', NULL),
+(9, 1, 'Late', '2026-05-07', NULL),
+(10, 1, 'Present', '2026-05-07', NULL),
+(11, 1, 'Present', '2026-05-07', NULL),
+(12, 2, 'Present', '2026-05-07', NULL),
+(13, 1, 'Present', '2026-05-07', NULL),
+(14, 2, 'Absent', '2026-05-07', NULL),
+(15, 1, 'Present', '2026-05-07', NULL),
+(16, 2, 'Present', '2026-05-07', NULL);
 
 -- --------------------------------------------------------
 
@@ -53,14 +71,34 @@ CREATE TABLE `settings` (
 --
 
 CREATE TABLE `students` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `student_id` varchar(50) NOT NULL,
   `full_name` varchar(150) NOT NULL,
+  `gender` varchar(20) NOT NULL,
   `section` varchar(100) NOT NULL,
   `parent_email` varchar(100) NOT NULL,
-  `student_email` varchar(100) NOT NULL,
-  PRIMARY KEY (`id`)
+  `student_email` varchar(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `students`
+--
+
+INSERT INTO `students` (`id`, `student_id`, `full_name`, `gender`, `section`, `parent_email`, `student_email`) VALUES
+(1, '23BSIT-0503', 'Marian Lee C. Taer', 'Female', 'BSIT-3J', 'matildecervantes67@gmail.com', 'marianleetaer@gmail.com'),
+(2, '2022-6511', 'Mary Claire C. Taer', '', 'BSIT-3J', 'marianleetaer@gmail.com', 'marygemini01@gmail.com'),
+(3, '23BSIT-0515', 'May V. Laput', '', 'BSIT-3J', 'laputmay@gmail.com', 'maylaput@gmail.com'),
+(4, '23BSIT-0502', 'Merly Mendez', '', 'BSIT-3J', 'mendezmerly@gmail.com', 'merlymendez@gmail.com'),
+(5, '23BSIT-0098', 'Jhonny B. Mapula', '', 'BSIT-3J', 'mapulajhonny@gmail.com', 'jhonnymapula@gmail.com'),
+(6, '23BSIT-0482', 'Angelica D. Pablete', '', 'BSIT-3J', 'pableteangelica@gmail.com', 'angelicapablete@gmail.com'),
+(7, '23BSIT-0205', 'Brent Matthew Jarsdel', '', 'BSIT-3S', 'brentjarsdel@gmail.com@gmail.com', 'matthewjarsdel@gmail.com'),
+(8, '23BSIT-0915', 'Shilah Escarra', '', 'BSIT-3S', 'chingescarra@gmail.com', 'shilahescarra@gmail.com'),
+(9, '23BSIT-3001', 'Rafiel Donato Arcena', '', 'BSIT-3S', 'arcenadonato@gmail.com', 'rafielarcena@gmail.com'),
+(10, '23BSIT-0926', 'Mikaela Chua', '', 'BSIT-3S', 'jasverchua@gmail.com', 'mikaelachua@gmail.com'),
+(11, '23BSIT-1029', 'Rade Archiel Tejano', '', 'BSIT-3S', 'archieltejano@gmail.com', 'radetejano@gmail.com'),
+(12, '23BSIT-0705', 'Maverick Evander', '', 'BSIT-3S', 'evandermaverick@gmail.com', 'maverickevander@gmail.com'),
+(13, '23BSIT-0593', 'Joshua C. Piquero', '', 'BSIT-3J', 'piquerojoshua@gmail.com', 'joshuapiquero@gmail.com'),
+(14, '23BSIT-0511', 'Angelou Cangmaong', '', 'BSIT-3J', 'cangmaongangelou@gmail.com', 'angeloucangmaong@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -75,6 +113,15 @@ CREATE TABLE `users` (
   `password` varchar(255) NOT NULL,
   `role` enum('admin','teacher') NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`) VALUES
+(1, 'System Admin', 'admin@gmail.com', 'admin123', 'admin'),
+(2, 'Teacher One', 'teacher@gmail.com', 'teacher123', 'teacher'),
+(3, 'Marian', 'mariancervantes.taer@gmail.com', '123456', 'teacher');
 
 --
 -- Indexes for dumped tables
@@ -114,7 +161,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `settings`
@@ -126,13 +173,13 @@ ALTER TABLE `settings`
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- Constraints for dumped tables

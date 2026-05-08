@@ -5,6 +5,8 @@ const auth = require("./routes/auth");
 const admin = require("./routes/admin");
 const teacher = require("./routes/teacher");
 const attendance = require("./routes/attendance");
+const sharedRoutes = require("./routes/shared");
+
 
 const app = express();
 
@@ -15,6 +17,7 @@ app.use("/auth", auth);
 app.use("/admin", admin);
 app.use("/teacher", teacher);
 app.use("/attendance", attendance);
+app.use("/api", sharedRoutes);
 
 app.listen(3000, () => {
     console.log("Server running on http://localhost:3001");
