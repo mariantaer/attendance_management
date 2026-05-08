@@ -283,3 +283,29 @@ table tr:last-child td {
 .search-box:focus {
     border-color: #166534;
 }
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding-right: 40px;
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 35%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 18px;
+    color: #555;
+    user-select: none;
+    transition: 0.2s;
+}
+
+.toggle-password:hover {
+    color: #166534;
+}
