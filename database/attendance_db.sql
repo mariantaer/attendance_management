@@ -84,22 +84,6 @@ CREATE TABLE `students` (
 -- Dumping data for table `students`
 --
 
-INSERT INTO `students` (`id`, `student_id`, `full_name`, `gender`, `section`, `parent_email`, `student_email`) VALUES
-(1, '23BSIT-0503', 'Marian Lee C. Taer', 'Female', 'BSIT-3J', 'matildecervantes67@gmail.com', 'marianleetaer@gmail.com'),
-(2, '2022-6511', 'Mary Claire C. Taer', '', 'BSIT-3J', 'marianleetaer@gmail.com', 'marygemini01@gmail.com'),
-(3, '23BSIT-0515', 'May V. Laput', '', 'BSIT-3J', 'laputmay@gmail.com', 'maylaput@gmail.com'),
-(4, '23BSIT-0502', 'Merly Mendez', '', 'BSIT-3J', 'mendezmerly@gmail.com', 'merlymendez@gmail.com'),
-(5, '23BSIT-0098', 'Jhonny B. Mapula', '', 'BSIT-3J', 'mapulajhonny@gmail.com', 'jhonnymapula@gmail.com'),
-(6, '23BSIT-0482', 'Angelica D. Pablete', '', 'BSIT-3J', 'pableteangelica@gmail.com', 'angelicapablete@gmail.com'),
-(7, '23BSIT-0205', 'Brent Matthew Jarsdel', '', 'BSIT-3S', 'brentjarsdel@gmail.com@gmail.com', 'matthewjarsdel@gmail.com'),
-(8, '23BSIT-0915', 'Shilah Escarra', '', 'BSIT-3S', 'chingescarra@gmail.com', 'shilahescarra@gmail.com'),
-(9, '23BSIT-3001', 'Rafiel Donato Arcena', '', 'BSIT-3S', 'arcenadonato@gmail.com', 'rafielarcena@gmail.com'),
-(10, '23BSIT-0926', 'Mikaela Chua', '', 'BSIT-3S', 'jasverchua@gmail.com', 'mikaelachua@gmail.com'),
-(11, '23BSIT-1029', 'Rade Archiel Tejano', '', 'BSIT-3S', 'archieltejano@gmail.com', 'radetejano@gmail.com'),
-(12, '23BSIT-0705', 'Maverick Evander', '', 'BSIT-3S', 'evandermaverick@gmail.com', 'maverickevander@gmail.com'),
-(13, '23BSIT-0593', 'Joshua C. Piquero', '', 'BSIT-3J', 'piquerojoshua@gmail.com', 'joshuapiquero@gmail.com'),
-(14, '23BSIT-0511', 'Angelou Cangmaong', '', 'BSIT-3J', 'cangmaongangelou@gmail.com', 'angeloucangmaong@gmail.com');
-
 -- --------------------------------------------------------
 
 --

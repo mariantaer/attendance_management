@@ -83,6 +83,18 @@
 
 <script>
 
+    function to12Hour(time24) {
+    if (!time24) return "";
+
+    let [hours, minutes] = time24.split(":");
+    hours = parseInt(hours);
+
+    const period = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+
+    return `${hours}:${minutes} ${period}`;
+}
+
     let selectedStudentId = null;
     let selectedStudentName = "";
 
@@ -106,24 +118,32 @@
 
     function saveSingleAttendance(){
 
-        const status = document.getElementById("modalStatus").value;
+    const status = document.getElementById("modalStatus").value;
 
-        fetch(`${API}/attendance/mark`, {
-            method:"POST",
-            headers:{
-                "Content-Type":"application/json"
-            },
-            body:JSON.stringify({
-                student_id: selectedStudentId,
-                status: status
-            })
+    const now = new Date();
+    const timeString = now.toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    fetch(`${API}/attendance/mark`, {
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+            student_id: selectedStudentId,
+            status: status,
+            time: timeString
         })
-        .then(res => res.text())
-        .then(() => {
-            alert(`${selectedStudentName} marked ${status}`);
-            closeModal();
-        });
-    }
+    })
+    .then(res => res.text())
+    .then(() => {
+        alert(`${selectedStudentName} marked ${status} at ${timeString}`);
+        closeModal();
+    });
+}
 
     // ======================================
     function groupBySection(data){
@@ -246,7 +266,10 @@
                 if(selectedSection && section !== selectedSection) continue;
 
                 html += `<h3>Section: ${section}</h3><table><thead><tr>
-                    <th>Name</th><th>Gender</th><th>Status</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Time In</th>
+                    <th>Status</th>
                 </tr></thead><tbody>`;
 
                 grouped[section].forEach(student => {
@@ -260,8 +283,12 @@
 
                             <td>${student.gender}</td>
 
-                            <td>
-                                <select id="status-${student.id}">
+<td>
+    <input type="time" id="time-${student.id}" style="padding:5px">
+</td>
+
+<td>
+    <select id="status-${student.id}">
                                     <option value="Present">Present</option>
                                     <option value="Absent">Absent</option>
                                     <option value="Late">Late</option>
@@ -290,13 +317,17 @@
     function saveAttendance(){
 
     const rows = document.querySelectorAll("select[id^='status-']");
-
     const requests = [];
 
     rows.forEach(select => {
 
         const studentId = select.id.replace("status-", "");
         const status = select.value;
+
+        const timeInput = document.getElementById(`time-${studentId}`);
+        const time24 = timeInput ? timeInput.value : "";
+
+        const time12 = to12Hour(time24); // ✅ convert here
 
         requests.push(
             fetch(`${API}/attendance/mark`, {
@@ -306,7 +337,8 @@
                 },
                 body: JSON.stringify({
                     student_id: studentId,
-                    status: status
+                    status: status,
+                    time: time12
                 })
             })
         );
@@ -404,8 +436,8 @@
                         <td>${report.full_name}</td>
                         <td>${report.gender}</td>
                         <td>${report.status}</td>
-                        <td>${report.date}</td>
-                        <td>${report.time}</td>
+                        <td>${formatDateMMDDYYYY(report.date)}</td>
+                        <td>${formatTime12Hour(report.time)}</td>
                     </tr>
                 `;
             });
@@ -426,6 +458,28 @@
     }
 
     loadStudents();
+
+    function formatDateMMDDYYYY(dateStr) {
+    const d = new Date(dateStr);
+
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    const yyyy = d.getFullYear();
+
+    return `${mm}/${dd}/${yyyy}`;
+}
+
+function formatTime12Hour(timeStr) {
+    if (!timeStr) return "";
+
+    const [hourStr, min] = timeStr.split(":");
+    let hour = parseInt(hourStr);
+
+    const period = hour >= 12 ? "PM" : "AM";
+    hour = hour % 12 || 12;
+
+    return `${hour}:${min} ${period}`;
+}
 
 </script>
 

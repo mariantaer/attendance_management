@@ -18,27 +18,45 @@ const db = mysql.createConnection({
 // ===============================
 router.post("/mark", (req, res) => {
 
-    const { student_id, status } = req.body;
+    const { student_id, status: manualStatus, time } = req.body;
 
-    if (!student_id || !status) {
+    if (!student_id || !time) {
         return res.status(400).send("Missing data");
     }
 
     const now = new Date();
-
     const date = now.toISOString().split("T")[0];
-    const time = now.toLocaleTimeString("en-GB", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false
-    });
+
+    // ===============================
+    // CLASS START TIME (8:00 AM)
+    // ===============================
+    const [hour, minutePart] = time.split(":");
+    const inputHour = parseInt(hour);
+
+    const classStart = new Date();
+    classStart.setHours(8, 0, 0, 0);
+
+    const inputTime = new Date();
+    inputTime.setHours(inputHour, parseInt(minutePart), 0, 0);
+
+    const diffMinutes = Math.floor((inputTime - classStart) / 60000);
+
+    let finalStatus = "Present";
+
+    if (diffMinutes <= 15) {
+        finalStatus = "Present";
+    } else if (diffMinutes <= 30) {
+        finalStatus = "Late";
+    } else {
+        finalStatus = "Absent";
+    }
 
     const insertQuery = `
         INSERT INTO attendance (student_id, status, date, time)
         VALUES (?, ?, ?, ?)
     `;
 
-    db.query(insertQuery, [student_id, status, date, time], (err) => {
+    db.query(insertQuery, [student_id, finalStatus, date, time], (err) => {
 
         if (err) {
             console.log("DB ERROR:", err);
@@ -65,54 +83,38 @@ router.post("/mark", (req, res) => {
                 subject: `Attendance Notification - ${student.full_name}`,
 
                 html: `
-                    <div style="font-family: Arial, sans-serif; line-height: 1.6;">
-                        
-                        <h2 style="color: #2c3e50;">Attendance Notification</h2>
-
-                        <p>Dear Parent/Guardian,</p>
+                    <div style="font-family: Arial;">
+                        <h2>Attendance Notification</h2>
 
                         <p>
-                            This is to inform you that
                             <strong>${student.full_name}</strong>
-                            has been marked as
-                            <strong style="color: ${
-                                status.toLowerCase() === 'present'
-                                    ? 'green'
-                                    : status.toLowerCase() === 'late'
-                                    ? 'orange'
-                                    : 'red'
-                            };">
-                                ${status.toUpperCase()}
-                            </strong>.
+                            is marked as
+                            <strong style="color:${
+                                finalStatus === "Present"
+                                    ? "green"
+                                    : finalStatus === "Late"
+                                    ? "orange"
+                                    : "red"
+                            }">
+                                ${finalStatus}
+                            </strong>
                         </p>
 
-                        <hr>
-
-                        <p><strong>Student Name:</strong> ${student.full_name}</p>
-                        <p><strong>Student ID:</strong> ${student.student_id}</p>
-                        <p><strong>Section:</strong> ${student.section}</p>
                         <p><strong>Date:</strong> ${date}</p>
                         <p><strong>Time:</strong> ${time}</p>
-
-                        <br>
-
-                        <p>Thank you,<br>
-                        <strong>PTC Attendance System</strong></p>
                     </div>
                 `
             };
+
             try {
                 await sendEmail(mailOptions);
-                res.send("Saved + Email Sent");
+                res.send(`Saved + Email Sent (${finalStatus})`);
             } catch (emailErr) {
                 console.log(emailErr);
                 res.send("Saved but email failed");
             }
-
         });
-
     });
-
 });
 
 // ===============================

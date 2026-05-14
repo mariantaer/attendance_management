@@ -24,6 +24,10 @@
                     Manage Teachers
                 </button>
 
+                <button onclick="loadStudents()">
+                    Manage Students
+                </button>
+
                 <!-- ADD TEACHER BUTTON -->
                 <button onclick="loadAddTeacher()">
                     Add Teacher
@@ -53,6 +57,218 @@
             </div>
 
         <script>
+
+            let studentData = [];
+            let editingStudentId = null;
+
+            function loadStudents() {
+
+    fetch(`${API}/admin/students`)
+    .then(res => res.json())
+    .then(data => {
+
+        studentData = data;
+
+        let html = `
+            <div class="card">
+
+                <h2>Manage Students</h2>
+
+                <button onclick="loadAddStudent()">
+                    + Add Student
+                </button>
+
+                <input 
+                    type="text"
+                    class="search-box"
+                    placeholder="Search student..."
+                    onkeyup="filterStudents()"
+                    id="studentSearch"
+                >
+
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Section</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="studentTableBody">
+                        ${renderStudentRows(data)}
+                    </tbody>
+                </table>
+
+            </div>
+        `;
+
+        document.getElementById("mainContent").innerHTML = html;
+    })
+    .catch(err => {
+        console.error("LOAD STUDENTS ERROR:", err);
+        alert("Failed to load students");
+    });
+}
+
+function loadAddStudent() {
+
+    editingStudentId = null;
+
+    document.getElementById("mainContent").innerHTML = `
+        <div class="card">
+
+            <h2>Add Student</h2>
+
+            <input id="student_id" placeholder="Student ID">
+
+            <input id="full_name" placeholder="Full Name">
+
+            <select id="gender">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+            </select>
+
+            <input id="section" placeholder="Section">
+
+            <input id="parent_email" placeholder="Parent Email">
+
+            <input id="student_email" placeholder="Student Email">
+
+            <button onclick="saveStudent()">
+                Save Student
+            </button>
+
+        </div>
+    `;
+}
+
+function saveStudent() {
+
+    const student_id = document.getElementById("student_id").value;
+    const full_name = document.getElementById("full_name").value;
+    const gender = document.getElementById("gender").value;
+    const section = document.getElementById("section").value;
+    const parent_email = document.getElementById("parent_email").value;
+    const student_email = document.getElementById("student_email").value;
+
+    if (!student_id || !full_name || !gender || !section || !parent_email || !student_email) {
+        alert("Please fill all fields");
+        return;
+    }
+
+    const url = editingStudentId
+        ? `${API}/admin/students/${editingStudentId}`
+        : `${API}/admin/students`;
+
+    const method = editingStudentId ? "PUT" : "POST";
+
+    fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+            student_id,
+            full_name,
+            gender,
+            section,
+            parent_email,
+            student_email
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || "Success");
+        loadStudents();
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error saving student");
+    });
+}
+
+function editStudent(id) {
+
+    const student = studentData.find(s => s.id === id);
+    editingStudentId = id;
+
+    document.getElementById("mainContent").innerHTML = `
+        <div class="card">
+
+            <h2>Edit Student</h2>
+
+            <input id="student_id" value="${student.student_id}">
+            <input id="full_name" value="${student.full_name}">
+
+            <select id="gender">
+                <option value="Male" ${student.gender === "Male" ? "selected" : ""}>Male</option>
+                <option value="Female" ${student.gender === "Female" ? "selected" : ""}>Female</option>
+            </select>
+
+            <input id="section" value="${student.section}">
+            <input id="parent_email" value="${student.parent_email}">
+            <input id="student_email" value="${student.student_email}">
+
+            <button onclick="saveStudent()">Update Student</button>
+
+        </div>
+    `;
+}
+
+function deleteStudent(id) {
+
+    if (!confirm("Delete this student?")) return;
+
+    fetch(`${API}/admin/students/${id}`, {
+        method: "DELETE"
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert(data.message || "Deleted");
+        loadStudents();
+    })
+    .catch(err => console.error(err));
+}
+
+function filterStudents() {
+
+    const value = document
+        .getElementById("studentSearch")
+        .value
+        .toLowerCase();
+
+    const filtered = studentData.filter(s =>
+        (s.student_id || "").toLowerCase().includes(value) ||
+        (s.full_name || "").toLowerCase().includes(value) ||
+        (s.section || "").toLowerCase().includes(value) ||
+        (s.student_email || "").toLowerCase().includes(value)
+    );
+
+    document.getElementById("studentTableBody")
+        .innerHTML = renderStudentRows(filtered);
+}
+
+function renderStudentRows(data) {
+
+    if (!data || data.length === 0) {
+        return `<tr><td colspan="5">No students found</td></tr>`;
+    }
+
+    return data.map(s => `
+        <tr>
+            <td>${s.student_id}</td>
+            <td>${s.full_name}</td>
+            <td>${s.section}</td>
+            <td>${s.student_email}</td>
+            <td>
+                <button onclick="editStudent(${s.id})">Edit</button>
+                <button onclick="deleteStudent(${s.id})">Delete</button>
+            </td>
+        </tr>
+    `).join("");
+}
 
         const API = "http://localhost:3000";
 

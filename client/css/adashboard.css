@@ -309,3 +309,152 @@ table tr:last-child td {
 .toggle-password:hover {
     color: #166534;
 }
+
+/* =========================
+   STUDENTS MODULE ONLY
+========================= */
+
+.card {
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    margin-top: 20px;
+}
+
+/* Title */
+.card h2 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: #1e293b;
+}
+
+/* Add Student Button */
+.card button {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 15px;
+    transition: 0.2s;
+}
+
+.card button:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+}
+
+/* Search Box */
+.search-box {
+    width: 100%;
+    padding: 10px 12px;
+    margin: 10px 0 15px 0;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    outline: none;
+    font-size: 14px;
+}
+
+.search-box:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+
+/* Table */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+/* Table Head */
+.data-table thead {
+    background: #0f172a;
+    color: white;
+}
+
+.data-table th {
+    padding: 12px;
+    text-align: left;
+    font-size: 14px;
+}
+
+/* Table Body */
+.data-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+    color: #334155;
+}
+
+/* Hover row */
+.data-table tbody tr:hover {
+    background: #f1f5f9;
+}
+
+/* Action buttons */
+.data-table button {
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-right: 5px;
+}
+
+/* Edit button */
+.data-table button:nth-child(1) {
+    background: #f59e0b;
+    color: white;
+}
+
+.data-table button:nth-child(1):hover {
+    background: #d97706;
+}
+
+/* Delete button */
+.data-table button:nth-child(2) {
+    background: #ef4444;
+    color: white;
+}
+
+.data-table button:nth-child(2):hover {
+    background: #dc2626;
+}
+
+/* =========================
+   ADD / EDIT STUDENT FORM
+========================= */
+
+.card input,
+.card select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+}
+
+.card input:focus,
+.card select:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+}
+
+/* Save button (form only) */
+.card button.save-btn,
+.card button.update-btn {
+    width: 100%;
+    margin-top: 10px;
+    background: #10b981;
+}
+
+.card button.save-btn:hover,
+.card button.update-btn:hover {
+    background: #059669;
+}
