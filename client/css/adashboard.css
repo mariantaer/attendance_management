@@ -1,281 +1,402 @@
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Inter', sans-serif;
+/* =====================================================
+   GLOBAL RESET
+===================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
-body{
-    display:flex;
-    min-height:100vh;
-    background:#f1f5f9;
+body {
+    display: flex;
+    min-height: 100vh;
+    background: #f1f5f9;
 }
 
-/* SIDEBAR */
+/* =====================================================
+   SIDEBAR
+===================================================== */
+.sidebar {
+    width: 260px;
+    min-width: 260px;
+    background: #166534;
+    color: white;
 
-.sidebar{
-    width:260px;
-    background:#166534;
-    color:white;
+    padding: 25px 20px;
 
-    padding:25px 20px;
-
-    display:flex;
-    flex-direction:column;
-    gap:15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
 }
 
 /* LOGO */
-
-.logo-area{
-    text-align:center;
-    margin-bottom:30px;
+.logo-area {
+    text-align: center;
+    margin-bottom: 30px;
 }
 
-.logo-area img{
-    width:90px;
-    margin-bottom:10px;
+.logo-area img {
+    width: 90px;
+    margin-bottom: 10px;
 }
 
-.logo-area h2{
-    font-size:22px;
-    font-weight:700;
+.logo-area h2 {
+    font-size: 22px;
+    font-weight: 700;
 }
 
 /* SIDEBAR BUTTONS */
+.sidebar button {
+    width: 100%;
+    padding: 14px;
 
-.sidebar button{
-    width:100%;
-    padding:14px;
+    border: none;
+    border-radius: 10px;
 
-    border:none;
-    border-radius:10px;
+    background: rgba(255,255,255,0.12);
+    color: white;
 
-    background:rgba(255,255,255,0.12);
-    color:white;
+    text-align: left;
+    font-size: 15px;
+    font-weight: 500;
 
-    text-align:left;
-
-    font-size:15px;
-    font-weight:500;
-
-    cursor:pointer;
-    transition:0.3s;
+    cursor: pointer;
+    transition: 0.3s;
 }
 
-.sidebar button:hover{
-    background:#22c55e;
-    transform:translateX(5px);
+.sidebar button:hover {
+    background: #22c55e;
+    transform: translateX(5px);
 }
 
 /* LOGOUT */
-
-.logout-btn{
-    margin-top:auto;
-    background:#dc2626 !important;
+.logout-btn {
+    margin-top: auto;
+    background: #dc2626 !important;
 }
 
-.logout-btn:hover{
-    background:#b91c1c !important;
+.logout-btn:hover {
+    background: #b91c1c !important;
 }
 
-/* MAIN */
-
-.main{
-    flex:1;
-    padding:30px;
+/* =====================================================
+   MAIN CONTENT
+===================================================== */
+.main {
+    flex: 1;
+    padding: 30px;
+    overflow-x: auto;
 }
 
-/* TOPBAR */
-
-.topbar{
-    background:white;
-
-    padding:22px 25px;
-
-    border-radius:15px;
-
-    margin-bottom:25px;
-
-    box-shadow:0 4px 12px rgba(0,0,0,0.05);
-}
-
-.topbar h1{
-    color:#166534;
-    font-size:28px;
-}
-
-/* CARD */
-
-.card{
-    background:white;
-
-    padding:25px;
-
-    border-radius:15px;
-
-    box-shadow:0 4px 12px rgba(0,0,0,0.05);
-
-    margin-bottom:25px;
-}
-
-.card h2{
-    margin-bottom:20px;
-    color:#166534;
-}
-
-.card h3{
-    margin-bottom:15px;
-    color:#1e293b;
-}
-
-/* INPUTS */
-
-input{
-    width:100%;
-
-    padding:14px;
-
-    margin-bottom:15px;
-
-    border:1px solid #d1d5db;
-    border-radius:10px;
-
-    outline:none;
-
-    font-size:14px;
-}
-
-input:focus{
-    border-color:#22c55e;
-}
-
-/* SAVE BUTTON */
-
-.save-btn{
-    background:#166534;
-    color:white;
-
-    border:none;
-
-    padding:14px 20px;
-
-    border-radius:10px;
-
-    cursor:pointer;
-
-    font-weight:600;
-
-    transition:0.3s;
-}
-
-.save-btn:hover{
-    background:#14532d;
-}
-
-/* TEACHERS GRID */
-
-.teacher-grid,
-.report-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:20px;
-}
-
-/* TEACHER CARD */
-
-.teacher-card,
-.report-card{
-    background:#f8fafc;
-
-    padding:18px;
-
-    border-radius:12px;
-
-    border-left:5px solid #166534;
-
-    line-height:1.8;
-}
-
-/* MOBILE */
-
-@media(max-width:768px){
-
-    body{
-        flex-direction:column;
-    }
-
-    .sidebar{
-        width:100%;
-        flex-direction:row;
-        flex-wrap:wrap;
-        justify-content:center;
-    }
-
-    .logo-area{
-        width:100%;
-    }
-
-    .main{
-        padding:15px;
-    }
-}
-
-/* ================= CLEAN DASHBOARD TABLE STYLE ================= */
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
+/* =====================================================
+   TOPBAR
+===================================================== */
+.topbar {
     background: white;
-    border-radius: 12px;
-    overflow: hidden;
+    padding: 22px 25px;
+
+    border-radius: 15px;
+    margin-bottom: 25px;
+
     box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-/* HEADER */
-table th {
-    background: #166534; /* your main green */
+.topbar h1 {
+    color: #166534;
+    font-size: 28px;
+}
+
+/* =====================================================
+   CARD
+===================================================== */
+.card {
+    background: white;
+    padding: 25px;
+
+    border-radius: 15px;
+    margin-bottom: 25px;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.card h2 {
+    margin-bottom: 20px;
+    color: #166534;
+}
+
+.card h3 {
+    margin-bottom: 15px;
+    color: #1e293b;
+}
+
+/* =====================================================
+   FORM INPUTS
+===================================================== */
+input,
+select {
+    width: 100%;
+    padding: 12px;
+
+    margin-bottom: 15px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+
+    outline: none;
+    font-size: 14px;
+}
+
+input:focus,
+select:focus {
+    border-color: #22c55e;
+}
+
+/* =====================================================
+   SAVE BUTTON
+===================================================== */
+.save-btn {
+    background: #166534;
     color: white;
+
+    border: none;
+    padding: 14px 20px;
+
+    border-radius: 10px;
+    cursor: pointer;
+
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.save-btn:hover {
+    background: #14532d;
+}
+
+/* =====================================================
+   ADD STUDENT BUTTON
+===================================================== */
+.add-student-btn {
+    background: #2563eb;
+    color: white;
+
+    border: none;
+    padding: 12px 18px;
+
+    border-radius: 10px;
+    cursor: pointer;
+
+    font-weight: 600;
+    margin-bottom: 15px;
+
+    transition: 0.3s;
+}
+
+.add-student-btn:hover {
+    background: #1d4ed8;
+}
+
+/* UPDATE BUTTON */
+.update-btn {
+    background: #f59e0b;
+    color: white;
+
+    border: none;
+    padding: 14px 20px;
+
+    border-radius: 10px;
+    cursor: pointer;
+
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.update-btn:hover {
+    background: #d97706;
+}
+
+/* student form buttons */
+.student-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 15px;
+}
+
+/* back button */
+.back-btn {
+    background: #6b7280;
+    color: white;
+
+    border: none;
+    padding: 14px 20px;
+
+    border-radius: 10px;
+    cursor: pointer;
+
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.back-btn:hover {
+    background: #4b5563;
+}
+
+/* =========================
+   MODAL
+========================= */
+.modal {
+    display: none;
+
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 100%;
+
+    background: rgba(0, 0, 0, 0.45);
+
+    justify-content: center;
+    align-items: center;
+
+    z-index: 999;
+}
+
+.modal-content {
+    background: white;
+
+    padding: 30px;
+    border-radius: 12px;
+
+    width: 90%;
+    max-width: 380px;
+
+    text-align: center;
+
+    box-shadow: 0 10px 25px rgba(0,0,0,.15);
+}
+
+.modal-content h3 {
+    margin-bottom: 10px;
+    color: #111827;
+}
+
+.modal-content p {
+    margin-bottom: 20px;
+    color: #4b5563;
+}
+
+.delete-btn {
+    background: #dc2626;
+    color: white;
+
+    border: none;
+    padding: 14px 20px;
+
+    border-radius: 10px;
+    cursor: pointer;
+
+    font-weight: 600;
+}
+
+.delete-btn:hover {
+    background: #b91c1c;
+}
+
+/* =====================================================
+   GRID
+===================================================== */
+.teacher-grid,
+.report-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+/* =====================================================
+   TEACHER / REPORT CARD
+===================================================== */
+.teacher-card,
+.report-card {
+    background: #f8fafc;
+    padding: 18px;
+
+    border-radius: 12px;
+    border-left: 5px solid #166534;
+
+    line-height: 1.8;
+}
+
+/* =====================================================
+   TABLE
+===================================================== */
+table,
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+table th,
+.data-table th {
+    background: #166534;
+    color: white;
+
     padding: 14px;
     text-align: left;
-    font-weight: 600;
+
     font-size: 14px;
+    font-weight: 600;
 }
 
-/* CELLS */
-table td {
+table td,
+.data-table td {
     padding: 12px;
     border-bottom: 1px solid #e2e8f0;
-    color: #1f2937;
     font-size: 14px;
+    color: #1f2937;
 }
 
-/* ROW HOVER */
-table tr:hover {
-    background: #f0fdf4; /* light green hover */
-    transition: 0.2s;
+table tr:hover,
+.data-table tbody tr:hover {
+    background: #f0fdf4;
 }
 
-/* LAST ROW CLEAN BORDER */
-table tr:last-child td {
+table tr:last-child td,
+.data-table tr:last-child td {
     border-bottom: none;
 }
 
-/* ================= OPTIONAL: TABLE WRAPPER (RECOMMENDED) ================= */
+/* =====================================================
+   TABLE WRAPPER
+===================================================== */
 .table-wrapper {
     background: white;
     padding: 20px;
+
     border-radius: 15px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
+/* =====================================================
+   SEARCH BOX
+===================================================== */
 .search-box {
     width: 100%;
     padding: 12px;
+
     margin: 10px 0 15px;
-    border-radius: 10px;
+
     border: 1px solid #cbd5e1;
+    border-radius: 10px;
+
     outline: none;
     font-size: 14px;
 }
@@ -284,13 +405,15 @@ table tr:last-child td {
     border-color: #166534;
 }
 
+/* =====================================================
+   PASSWORD TOGGLE
+===================================================== */
 .password-wrapper {
     position: relative;
     width: 100%;
 }
 
 .password-wrapper input {
-    width: 100%;
     padding-right: 40px;
 }
 
@@ -298,114 +421,32 @@ table tr:last-child td {
     position: absolute;
     right: 12px;
     top: 35%;
+
     transform: translateY(-50%);
     cursor: pointer;
+
     font-size: 18px;
     color: #555;
-    user-select: none;
-    transition: 0.2s;
 }
 
 .toggle-password:hover {
     color: #166534;
 }
 
-/* =========================
-   STUDENTS MODULE ONLY
-========================= */
-
-.card {
-    background: #ffffff;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
-    margin-top: 20px;
-}
-
-/* Title */
-.card h2 {
-    font-size: 22px;
-    margin-bottom: 15px;
-    color: #1e293b;
-}
-
-/* Add Student Button */
-.card button {
-    background: #2563eb;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: 500;
-    margin-bottom: 15px;
-    transition: 0.2s;
-}
-
-.card button:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
-}
-
-/* Search Box */
-.search-box {
-    width: 100%;
-    padding: 10px 12px;
-    margin: 10px 0 15px 0;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    outline: none;
-    font-size: 14px;
-}
-
-.search-box:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
-}
-
-/* Table */
-.data-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 10px;
-    overflow: hidden;
-    border-radius: 10px;
-}
-
-/* Table Head */
-.data-table thead {
-    background: #0f172a;
-    color: white;
-}
-
-.data-table th {
-    padding: 12px;
-    text-align: left;
-    font-size: 14px;
-}
-
-/* Table Body */
-.data-table td {
-    padding: 12px;
-    border-bottom: 1px solid #e5e7eb;
-    font-size: 14px;
-    color: #334155;
-}
-
-/* Hover row */
-.data-table tbody tr:hover {
-    background: #f1f5f9;
-}
-
-/* Action buttons */
+/* =====================================================
+   TABLE ACTION BUTTONS
+===================================================== */
 .data-table button {
     padding: 6px 10px;
     border-radius: 6px;
+
     font-size: 12px;
     margin-right: 5px;
+
+    border: none;
+    cursor: pointer;
 }
 
-/* Edit button */
 .data-table button:nth-child(1) {
     background: #f59e0b;
     color: white;
@@ -415,7 +456,6 @@ table tr:last-child td {
     background: #d97706;
 }
 
-/* Delete button */
 .data-table button:nth-child(2) {
     background: #ef4444;
     color: white;
@@ -425,36 +465,116 @@ table tr:last-child td {
     background: #dc2626;
 }
 
-/* =========================
-   ADD / EDIT STUDENT FORM
-========================= */
+/* =====================================================
+   FILTERS
+===================================================== */
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 20px;
 
-.card input,
-.card select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-size: 14px;
-    outline: none;
+    flex-wrap: nowrap;
+    margin-bottom: 20px;
 }
 
-.card input:focus,
-.card select:focus {
-    border-color: #2563eb;
-    box-shadow: 0 0 0 2px rgba(37,99,235,0.2);
+.section-filter,
+.date-filter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
-/* Save button (form only) */
-.card button.save-btn,
-.card button.update-btn {
-    width: 100%;
-    margin-top: 10px;
-    background: #10b981;
+.section-filter label,
+.date-filter label {
+    font-weight: 600;
+    white-space: nowrap;
 }
 
-.card button.save-btn:hover,
-.card button.update-btn:hover {
-    background: #059669;
+.section-filter select,
+.date-filter input {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+/* =====================================================
+   RESPONSIVE
+   SIDEBAR STAYS LEFT
+===================================================== */
+@media (max-width: 768px) {
+
+    body {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 220px;
+        min-width: 220px;
+
+        padding: 20px 15px;
+
+        flex-direction: column;
+        flex-wrap: nowrap;
+    }
+
+    .logo-area img {
+        width: 70px;
+    }
+
+    .logo-area h2 {
+        font-size: 18px;
+    }
+
+    .sidebar button {
+        font-size: 14px;
+        padding: 12px;
+    }
+
+    .main {
+        padding: 15px;
+    }
+
+    .filters {
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    table,
+    .data-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* SMALL PHONES */
+@media (max-width: 480px) {
+
+    .sidebar {
+        width: 180px;
+        min-width: 180px;
+        padding: 15px 10px;
+    }
+
+    .logo-area img {
+        width: 60px;
+    }
+
+    .logo-area h2 {
+        font-size: 16px;
+    }
+
+    .sidebar button {
+        font-size: 13px;
+        padding: 10px;
+    }
+
+    .main {
+        padding: 12px;
+    }
+
+    .topbar h1 {
+        font-size: 22px;
+    }
 }

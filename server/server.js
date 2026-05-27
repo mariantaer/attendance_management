@@ -19,8 +19,6 @@ app.use("/admin", admin);
 app.use("/teacher", teacher);
 app.use("/attendance", attendance);
 app.use("/api", sharedRoutes);
-
-// ✅ FIXED STUDENT ROUTE
 app.use("/admin/students", student);
 
 const PORT = 3000;

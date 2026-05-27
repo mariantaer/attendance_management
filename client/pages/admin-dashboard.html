@@ -37,7 +37,8 @@
                     Attendance Reports
                 </button>
 
-                <button class="logout-btn" onclick="logout()">
+                <button class="logout-btn"
+                    onclick="showLogoutModal()">
                     Logout
                 </button>
 
@@ -56,35 +57,66 @@
 
             </div>
 
+            <!-- Confirmation Modal -->
+            <div id="studentModal" class="modal">
+
+                <div class="modal-content">
+
+                    <h3 id="modalTitle">Success</h3>
+
+                    <p id="modalMessage"></p>
+
+                    <div id="modalActions">
+
+                        <button class="save-btn" onclick="closeModal()">
+                            OK
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         <script>
+    function loadStudents() {
 
-            let studentData = [];
-            let editingStudentId = null;
+        fetch(`${API}/admin/students`)
+        .then(res => res.json())
+        .then(data => {
 
-            function loadStudents() {
+            studentData = data;
 
-    fetch(`${API}/admin/students`)
-    .then(res => res.json())
-    .then(data => {
+            let html = `
+                <div class="card">
 
-        studentData = data;
+                    <h2>Manage Students</h2>
 
-        let html = `
-            <div class="card">
+                    <button class="add-student-btn" onclick="loadAddStudent()">
+                        + Add Student
+                    </button>
 
-                <h2>Manage Students</h2>
+                    <input
+                        type="text"
+                        class="search-box"
+                        placeholder="Search student..."
+                        onkeyup="filterStudents()"
+                        id="studentSearch"
+                    >
+            `;
 
-                <button onclick="loadAddStudent()">
-                    + Add Student
-                </button>
+        const grouped = {};
 
-                <input 
-                    type="text"
-                    class="search-box"
-                    placeholder="Search student..."
-                    onkeyup="filterStudents()"
-                    id="studentSearch"
-                >
+        data.forEach(student => {
+            if (!grouped[student.section]) {
+                grouped[student.section] = [];
+            }
+            grouped[student.section].push(student);
+        });
+
+        for (const section in grouped) {
+            html += `
+                <h3>Section: ${section}</h3>
 
                 <table class="data-table">
                     <thead>
@@ -92,18 +124,22 @@
                             <th>Student ID</th>
                             <th>Name</th>
                             <th>Section</th>
+                            <th>Gender</th>
                             <th>Email</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
 
-                    <tbody id="studentTableBody">
-                        ${renderStudentRows(data)}
+                    <tbody>
+                        ${renderStudentRows(grouped[section])}
                     </tbody>
                 </table>
 
-            </div>
-        `;
+                <br>
+            `;
+        }
+
+        html += `</div>`;
 
         document.getElementById("mainContent").innerHTML = html;
     })
@@ -113,168 +149,247 @@
     });
 }
 
-function loadAddStudent() {
+    function loadAddStudent() {
 
-    editingStudentId = null;
+        editingStudentId = null;
 
-    document.getElementById("mainContent").innerHTML = `
-        <div class="card">
+        document.getElementById("mainContent").innerHTML = `
+            <div class="card">
 
-            <h2>Add Student</h2>
+                <h2>Add Student</h2>
 
-            <input id="student_id" placeholder="Student ID">
+                <input id="student_id" placeholder="Student ID">
+                <input id="full_name" placeholder="Full Name">
+                <input id="section" placeholder="Section">
 
-            <input id="full_name" placeholder="Full Name">
+                <select id="gender">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                </select>
 
-            <select id="gender">
-                <option value="">Select Gender</option>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-            </select>
+                <input id="parent_email" placeholder="Parent Email">
+                <input id="student_email" placeholder="Student Email">
 
-            <input id="section" placeholder="Section">
+                <div class="student-actions">
+                    <button class="back-btn" onclick="loadStudents()">
+                        ← Back
+                    </button>
 
-            <input id="parent_email" placeholder="Parent Email">
+                    <button class="save-btn" onclick="saveStudent()">
+                        Save Student
+                    </button>
+                </div>
 
-            <input id="student_email" placeholder="Student Email">
+            </div>
+        `;
+    }
 
-            <button onclick="saveStudent()">
-                Save Student
+    function saveStudent() {
+
+        const student_id = document.getElementById("student_id").value;
+        const full_name = document.getElementById("full_name").value;
+        const section = document.getElementById("section").value;
+        const gender = document.getElementById("gender").value;
+        const parent_email = document.getElementById("parent_email").value;
+        const student_email = document.getElementById("student_email").value;
+
+        if (!student_id || !full_name || !gender || !section || !parent_email || !student_email) {
+            alert("Please fill all fields");
+            return;
+        }
+
+        const url = editingStudentId
+            ? `${API}/admin/students/${editingStudentId}`
+            : `${API}/admin/students`;
+
+        const method = editingStudentId ? "PUT" : "POST";
+
+        fetch(url, {
+            method,
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                student_id,
+                full_name,
+                section,
+                gender,
+                parent_email,
+                student_email
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+
+            showModal(
+                editingStudentId ? "Updated" : "Success",
+                data.message || (
+                    editingStudentId
+                        ? "Student updated successfully."
+                        : "Student added successfully."
+                )
+            );
+
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Failed to save student");
+        });
+    }
+
+    let deletingStudentId = null;
+
+    function showModal(title, message) {
+
+        document.getElementById("modalTitle").innerText = title;
+        document.getElementById("modalMessage").innerText = message;
+
+        document.getElementById("modalActions").innerHTML = `
+            <button class="save-btn" onclick="closeModal()">
+                OK
+            </button>
+        `;
+
+        document.getElementById("studentModal").style.display = "flex";
+    }
+
+    function closeTeacherModal() {
+
+        document.getElementById("studentModal").style.display = "none";
+
+        loadTeachers();
+    }
+
+    function closeModal() {
+
+        document.getElementById("studentModal").style.display = "none";
+
+        loadStudents();
+    }
+
+    function showDeleteModal(title, message, id) {
+
+        deletingStudentId = id;
+
+        document.getElementById("modalTitle").innerText = title;
+        document.getElementById("modalMessage").innerText = message;
+
+        document.getElementById("modalActions").innerHTML = `
+            <button class="back-btn" onclick="closeModal()">
+                Cancel
             </button>
 
-        </div>
-    `;
-}
+            <button class="delete-btn" onclick="confirmDeleteStudent()">
+                Delete
+            </button>
+        `;
 
-function saveStudent() {
-
-    const student_id = document.getElementById("student_id").value;
-    const full_name = document.getElementById("full_name").value;
-    const gender = document.getElementById("gender").value;
-    const section = document.getElementById("section").value;
-    const parent_email = document.getElementById("parent_email").value;
-    const student_email = document.getElementById("student_email").value;
-
-    if (!student_id || !full_name || !gender || !section || !parent_email || !student_email) {
-        alert("Please fill all fields");
-        return;
+        document.getElementById("studentModal").style.display = "flex";
     }
 
-    const url = editingStudentId
-        ? `${API}/admin/students/${editingStudentId}`
-        : `${API}/admin/students`;
+    function confirmDeleteStudent() {
 
-    const method = editingStudentId ? "PUT" : "POST";
-
-    fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            student_id,
-            full_name,
-            gender,
-            section,
-            parent_email,
-            student_email
+        fetch(`${API}/admin/students/${deletingStudentId}`, {
+            method: "DELETE"
         })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message || "Success");
-        loadStudents();
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error saving student");
-    });
-}
+        .then(res => res.json())
+        .then(data => {
 
-function editStudent(id) {
+            showModal(
+                "Deleted",
+                data.message || "Student deleted successfully."
+            );
 
-    const student = studentData.find(s => s.id === id);
-    editingStudentId = id;
-
-    document.getElementById("mainContent").innerHTML = `
-        <div class="card">
-
-            <h2>Edit Student</h2>
-
-            <input id="student_id" value="${student.student_id}">
-            <input id="full_name" value="${student.full_name}">
-
-            <select id="gender">
-                <option value="Male" ${student.gender === "Male" ? "selected" : ""}>Male</option>
-                <option value="Female" ${student.gender === "Female" ? "selected" : ""}>Female</option>
-            </select>
-
-            <input id="section" value="${student.section}">
-            <input id="parent_email" value="${student.parent_email}">
-            <input id="student_email" value="${student.student_email}">
-
-            <button onclick="saveStudent()">Update Student</button>
-
-        </div>
-    `;
-}
-
-function deleteStudent(id) {
-
-    if (!confirm("Delete this student?")) return;
-
-    fetch(`${API}/admin/students/${id}`, {
-        method: "DELETE"
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.message || "Deleted");
-        loadStudents();
-    })
-    .catch(err => console.error(err));
-}
-
-function filterStudents() {
-
-    const value = document
-        .getElementById("studentSearch")
-        .value
-        .toLowerCase();
-
-    const filtered = studentData.filter(s =>
-        (s.student_id || "").toLowerCase().includes(value) ||
-        (s.full_name || "").toLowerCase().includes(value) ||
-        (s.section || "").toLowerCase().includes(value) ||
-        (s.student_email || "").toLowerCase().includes(value)
-    );
-
-    document.getElementById("studentTableBody")
-        .innerHTML = renderStudentRows(filtered);
-}
-
-function renderStudentRows(data) {
-
-    if (!data || data.length === 0) {
-        return `<tr><td colspan="5">No students found</td></tr>`;
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Failed to delete student");
+        });
     }
 
-    return data.map(s => `
-        <tr>
-            <td>${s.student_id}</td>
-            <td>${s.full_name}</td>
-            <td>${s.section}</td>
-            <td>${s.student_email}</td>
-            <td>
-                <button onclick="editStudent(${s.id})">Edit</button>
-                <button onclick="deleteStudent(${s.id})">Delete</button>
-            </td>
-        </tr>
-    `).join("");
-}
+    function editStudent(id) {
+
+        const student = studentData.find(s => s.id === id);
+        editingStudentId = id;
+
+        document.getElementById("mainContent").innerHTML = `
+            <div class="card">
+
+                <h2>Edit Student</h2>
+
+                <input id="student_id" value="${student.student_id}">
+                <input id="full_name" value="${student.full_name}">
+                <input id="section" value="${student.section}">
+
+                <select id="gender">
+                    <option value="Male" ${student.gender === "Male" ? "selected" : ""}>Male</option>
+                    <option value="Female" ${student.gender === "Female" ? "selected" : ""}>Female</option>
+                </select>
+
+                <input id="parent_email" value="${student.parent_email}">
+                <input id="student_email" value="${student.student_email}">
+
+                <button class="update-btn" onclick="saveStudent()">
+                    Update Student
+                </button>
+
+            </div>
+        `;
+    }
+
+    function deleteStudent(id) {
+
+        const student = studentData.find(s => s.id === id);
+
+        showDeleteModal(
+            "Delete Student",
+            `Are you sure you want to delete ${student.full_name}?`,
+            id
+        );
+    }
+
+    function filterStudents() {
+
+        const value = document
+            .getElementById("studentSearch")
+            .value
+            .toLowerCase();
+
+        const filtered = studentData.filter(s =>
+            (s.student_id || "").toLowerCase().includes(value) ||
+            (s.full_name || "").toLowerCase().includes(value) ||
+            (s.section || "").toLowerCase().includes(value) ||
+            (s.student_email || "").toLowerCase().includes(value)
+        );
+
+        document.getElementById("studentTableBody")
+            .innerHTML = renderStudentRows(filtered);
+    }
+
+    function renderStudentRows(data) {
+
+        if (!data || data.length === 0) {
+            return `<tr><td colspan="5">No students found</td></tr>`;
+        }
+
+        return data.map(s => `
+            <tr>
+                <td>${s.student_id}</td>
+                <td>${s.full_name}</td>
+                <td>${s.section}</td>
+                <td>${s.gender}</td>
+                <td>${s.student_email}</td>
+                <td>
+                    <button onclick='editStudent(${s.id})'>Edit</button>
+                    <button onclick='deleteStudent(${s.id})'>Delete</button>
+                </td>
+            </tr>
+        `).join("");
+    }
 
         const API = "http://localhost:3000";
 
-        // ======================================
-        // LOAD ADD TEACHER PAGE
-        // ======================================
         function loadAddTeacher() {
 
             let html = `
@@ -297,17 +412,17 @@ function renderStudentRows(data) {
 
                     <div class="password-wrapper">
 
-    <input 
-        type="password" 
-        id="password" 
-        placeholder="Enter Password"
-    >
+                    <input 
+                        type="password" 
+                        id="password" 
+                        placeholder="Enter Password"
+                    >
 
-    <span class="toggle-password" onclick="toggleTeacherPassword()">
-        👁
-    </span>
+                    <span class="toggle-password" onclick="toggleTeacherPassword()">
+                        👁
+                    </span>
 
-</div>
+                </div>
                     <button class="save-btn" onclick="addTeacher()">
                         Save Teacher
                     </button>
@@ -318,10 +433,10 @@ function renderStudentRows(data) {
             document.getElementById("mainContent").innerHTML = html;
         }
 
-        // ======================================
-        // LOAD TEACHERS
-        // ======================================
+
         let teacherData = [];
+        let editingTeacherId = null;
+        let deletingTeacherId = null;
 
         function loadTeachers() {
 
@@ -333,28 +448,33 @@ function renderStudentRows(data) {
 
                 let html = `
                     <div class="card">
+
                         <h2>Manage Teachers</h2>
 
-                        <input 
-                            type="text" 
-                            id="teacherSearch" 
+                        <input
+                            type="text"
+                            id="teacherSearch"
                             class="search-box"
                             placeholder="Search teacher..."
                             onkeyup="filterTeachers()"
                         >
 
                         <table class="data-table">
+
                             <thead>
                                 <tr>
                                     <th>Name</th>
                                     <th>Email</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
 
                             <tbody id="teacherTableBody">
                                 ${renderTeacherRows(data)}
                             </tbody>
+
                         </table>
+
                     </div>
                 `;
 
@@ -362,39 +482,49 @@ function renderStudentRows(data) {
             });
         }
 
-        // ======================================
-        // ADD TEACHER
-        // ======================================
         function addTeacher() {
 
-            const name = document.getElementById("name").value;
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
+        const name = document.getElementById("name").value;
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
 
-            if (!name || !email || !password) {
-                alert("Please fill in all fields");
-                return;
-            }
-
-            fetch(`${API}/admin/teacher`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ name, email, password })
-            })
-            .then(res => res.text())
-            .then(msg => {
-                alert(msg);
-
-                // AFTER ADDING, GO TO MANAGE TEACHERS
-                loadTeachers();
-            })
-            .catch(err => {
-                console.error(err);
-                alert("Failed to add teacher");
-            });
+        if (!name || !email || !password) {
+            alert("Please fill in all fields");
+            return;
         }
+
+        fetch(`${API}/admin/teacher`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                name,
+                email,
+                password
+            })
+        })
+        .then(res => res.text())
+        .then(msg => {
+
+            document.getElementById("modalTitle").innerText = "Success";
+
+            document.getElementById("modalMessage").innerText =
+                msg || "Teacher added successfully.";
+
+            document.getElementById("modalActions").innerHTML = `
+                <button class="save-btn" onclick="closeTeacherModal()">
+                    OK
+                </button>
+            `;
+
+            document.getElementById("studentModal").style.display = "flex";
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Failed to add teacher");
+        });
+    }
 
         function renderTeachers(data, html = "") {
 
@@ -428,16 +558,173 @@ function renderStudentRows(data) {
 
         function renderTeacherRows(data) {
 
-            if (!data || data.length === 0) {
-                return `<tr><td colspan="2">No teachers found</td></tr>`;
-            }
+        if (!data || data.length === 0) {
+            return `<tr><td colspan="3">No teachers found</td></tr>`;
+        }
 
-            return data.map(t => `
-                <tr>
-                    <td>${t.name}</td>
-                    <td>${t.email}</td>
-                </tr>
-            `).join("");
+        return data.map(t => `
+            <tr>
+                <td>${t.name}</td>
+                <td>${t.email}</td>
+
+                <td>
+                    <button onclick="editTeacher(${t.id})">
+                        Edit
+                    </button>
+
+                    <button onclick="deleteTeacher(${t.id})">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+        `).join("");
+    }
+
+        function editTeacher(id) {
+
+            const teacher = teacherData.find(t => t.id === id);
+
+            editingTeacherId = id;
+
+            document.getElementById("mainContent").innerHTML = `
+                <div class="card">
+
+                    <h2>Edit Teacher</h2>
+
+                    <input
+                        type="text"
+                        id="name"
+                        value="${teacher.name}"
+                    >
+
+                    <input
+                        type="email"
+                        id="email"
+                        value="${teacher.email}"
+                    >
+
+                    <div class="password-wrapper">
+
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="Enter new password"
+                        >
+
+                        <span class="toggle-password"
+                            onclick="toggleTeacherPassword()">
+                            👁
+                        </span>
+
+                    </div>
+
+                    <div class="student-actions">
+
+                        <button class="back-btn"
+                            onclick="loadTeachers()">
+                            ← Back
+                        </button>
+
+                        <button class="save-btn"
+                            onclick="saveTeacher()">
+                            Update Teacher
+                        </button>
+
+                    </div>
+
+                </div>
+            `;
+        }
+
+        function saveTeacher() {
+
+            const name = document.getElementById("name").value;
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            fetch(`${API}/admin/teachers/${editingTeacherId}`, {
+                method: "PUT",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    name,
+                    email,
+                    password
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                document.getElementById("modalTitle").innerText =
+                    "Updated";
+
+                document.getElementById("modalMessage").innerText =
+                    data.message || "Teacher updated successfully.";
+
+                document.getElementById("modalActions").innerHTML = `
+                    <button class="save-btn"
+                        onclick="closeTeacherModal()">
+                        OK
+                    </button>
+                `;
+
+                document.getElementById("studentModal").style.display =
+                    "flex";
+            });
+        }
+
+        function deleteTeacher(id) {
+
+            const teacher = teacherData.find(t => t.id === id);
+
+            deletingTeacherId = id;
+
+            document.getElementById("modalTitle").innerText =
+                "Delete Teacher";
+
+            document.getElementById("modalMessage").innerText =
+                `Are you sure you want to delete ${teacher.name}?`;
+
+            document.getElementById("modalActions").innerHTML = `
+                <button class="back-btn"
+                    onclick="closeTeacherModal()">
+                    Cancel
+                </button>
+
+                <button class="delete-btn"
+                    onclick="confirmDeleteTeacher()">
+                    Delete
+                </button>
+            `;
+
+            document.getElementById("studentModal").style.display =
+                "flex";
+        }
+
+        function confirmDeleteTeacher() {
+
+            fetch(`${API}/admin/teachers/${deletingTeacherId}`, {
+                method: "DELETE"
+            })
+            .then(res => res.json())
+            .then(data => {
+
+                document.getElementById("modalTitle").innerText =
+                    "Deleted";
+
+                document.getElementById("modalMessage").innerText =
+                    data.message || "Teacher deleted successfully.";
+
+                document.getElementById("modalActions").innerHTML = `
+                    <button class="save-btn"
+                        onclick="closeTeacherModal()">
+                        OK
+                    </button>
+                `;
+            });
         }
 
         function filterTeachers() {
@@ -457,48 +744,126 @@ function renderStudentRows(data) {
         // ======================================
         let reportData = [];
 
-        function loadReports() {
+        function loadReports(selectedSection = "", selectedDate = "") {
 
-            fetch(`${API}/attendance/reports`)
+            let url = `${API}/attendance/reports`;
+
+            if (selectedDate) {
+                url += `?date=${selectedDate}`;
+            }
+
+            fetch(url)
             .then(res => res.json())
             .then(data => {
 
                 reportData = data;
 
+                const grouped = {};
+
+                data.forEach(item => {
+                    if (!grouped[item.section]) {
+                        grouped[item.section] = [];
+                    }
+                    grouped[item.section].push(item);
+                });
+
+                const sections = Object.keys(grouped);
+
                 let html = `
                     <div class="card">
                         <h2>Attendance Reports</h2>
 
-                        <input 
-                            type="text" 
-                            id="reportSearch" 
-                            class="search-box"
-                            placeholder="Search name, section, status..."
-                            onkeyup="filterReports()"
-                        >
+                        <div class="filters">
 
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Student ID</th>
-                                    <th>Name</th>
-                                    <th>Section</th>
-                                    <th>Status</th>
-                                    <th>Date</th>
-                                    <th>Time</th>
-                                </tr>
-                            </thead>
+                            <div class="section-filter">
+                                <label>Section:</label>
+                                <select onchange="loadReports(this.value, '${selectedDate}')">
 
-                            <tbody id="reportTableBody">
-                                ${renderReportRows(data)}
-                            </tbody>
-                        </table>
-                    </div>
+                                    <option value="">
+                                        All Sections
+                                    </option>
+
+                                    ${sections.map(sec => `
+                                        <option value="${sec}"
+                                            ${sec === selectedSection ? "selected" : ""}>
+                                            ${sec}
+                                        </option>
+                                    `).join("")}
+
+                                </select>
+                            </div>
+
+                            <div class="date-filter">
+                                <label>Date:</label>
+
+                                <input
+                                    type="date"
+                                    value="${selectedDate}"
+                                    onchange="loadReports('${selectedSection}', this.value)">
+                            </div>
+
+                        </div>
                 `;
 
-                document.getElementById("mainContent").innerHTML = html;
-            });
-        }
+                    for (const section in grouped) {
+
+                        if (selectedSection && section !== selectedSection) continue;
+
+                        html += `
+                            <h3>Section: ${section}</h3>
+
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Name</th>
+                                        <th>Status</th>
+                                        <th>Date</th>
+                                        <th>Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+
+                        grouped[section].forEach(r => {
+
+                            html += `
+                                <tr>
+                                    <td>${r.student_id}</td>
+                                    <td>${r.full_name}</td>
+                                    <td>${r.status}</td>
+                                    <td>${formatDate(r.date)}</td>
+                                    <td>${r.time}</td>
+                                </tr>
+                            `;
+                        });
+
+                        html += `
+                                </tbody>
+                            </table>
+                            <br>
+                        `;
+                    }
+
+                    html += `</div>`;
+
+                    document.getElementById("mainContent").innerHTML = html;
+                });
+            }
+
+            function formatDate(dateStr) {
+
+                if (!dateStr) return "";
+
+                const d = new Date(dateStr);
+
+                const mm = String(d.getMonth() + 1).padStart(2, "0");
+                const dd = String(d.getDate()).padStart(2, "0");
+                const yyyy = d.getFullYear();
+
+                return `${mm}/${dd}/${yyyy}`;
+            }
+
         function renderReports(data, html = "") {
 
             let rows = "";
@@ -533,70 +898,49 @@ function renderStudentRows(data) {
             document.getElementById("mainContent").innerHTML = table;
         }
 
-        function filterReports() {
+        function toggleTeacherPassword() {
+            const password = document.getElementById("password");
+            const icon = document.querySelector(".toggle-password");
 
-    const value = document.getElementById("reportSearch").value.toLowerCase();
+            if (password.type === "password") {
+                password.type = "text";
+                icon.textContent = "👁";
+            } else {
+                password.type = "password";
+                icon.textContent = "👁";
+            }
+        }
 
-    const filtered = reportData.filter(r => {
-
-        return (
-            String(r.student_id || "").toLowerCase().includes(value) ||
-            String(r.full_name || "").toLowerCase().includes(value) ||
-            String(r.section || "").toLowerCase().includes(value) ||
-            String(r.status || "").toLowerCase().includes(value) ||
-            String(r.date || "").toLowerCase().includes(value)
-        );
-
-    });
-
-    document.getElementById("reportTableBody").innerHTML =
-        renderReportRows(filtered);
-}
-
-        function renderReportRows(data) {
-
-    if (!data || data.length === 0) {
-        return `<tr><td colspan="6">No reports found</td></tr>`;
-    }
-
-    return data.map(r => `
-        <tr>
-            <td>${r.student_id ?? ""}</td>
-            <td>${r.full_name ?? ""}</td>
-            <td>${r.section ?? ""}</td>
-            <td>${r.status ?? ""}</td>
-            <td>${r.date ?? ""}</td>
-            <td>${r.time ?? ""}</td>
-        </tr>
-    `).join("");
-}   
-
-function toggleTeacherPassword() {
-    const password = document.getElementById("password");
-    const icon = document.querySelector(".toggle-password");
-
-    if (password.type === "password") {
-        password.type = "text";
-        icon.textContent = "👁";
-    } else {
-        password.type = "password";
-        icon.textContent = "👁";
-    }
-}
-
-        // ======================================
-        // LOGOUT
-        // ======================================
         function logout() {
             localStorage.clear();
-            alert("Logged out successfully");
             window.location.href = "index.html";
         }
 
-        // AUTO LOAD
+        function showLogoutModal() {
+
+        document.getElementById("modalTitle").innerText =
+            "Logout";
+
+        document.getElementById("modalMessage").innerText =
+            "Are you sure you want to logout?";
+
+        document.getElementById("modalActions").innerHTML = `
+            <button class="back-btn"
+                onclick="closeModal()">
+                Cancel
+            </button>
+
+            <button class="delete-btn"
+                onclick="logout()">
+                Logout
+            </button>
+        `;
+
+        document.getElementById("studentModal").style.display =
+            "flex";
+    }
+
         loadTeachers();
-
         </script>
-
-        </body>
-        </html>
+   </body>
+</html>

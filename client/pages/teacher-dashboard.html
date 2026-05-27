@@ -40,6 +40,37 @@
     </div>
 </div>
 
+<!-- LOGOUT MODAL -->
+<div id="logoutModal" class="modal-overlay">
+
+    <div class="modal-content">
+
+        <h2 id="logoutTitle">
+            Logout
+        </h2>
+
+        <p id="logoutMessage">
+            Are you sure you want to logout?
+        </p>
+
+        <div class="modal-actions">
+
+            <button class="back-btn"
+                onclick="closeLogoutModal()">
+                Cancel
+            </button>
+
+            <button class="delete-btn"
+                onclick="logout()">
+                Logout
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
 <body>
 
     <!-- SIDEBAR -->
@@ -62,11 +93,11 @@
             Reports
         </button>
 
-        <button class="logout-btn" onclick="logout()">
+        <button class="logout-btn" onclick="showLogoutModal()">
             Logout
         </button>
 
-    </aside>
+        </aside>
 
     <!-- MAIN -->
     <div class="main">
@@ -103,7 +134,7 @@
     // ================= FIXED POPUP =================
     function openAttendancePopup(student){
 
-        selectedStudentId = student.id; // ✅ FIXED (was student.student_id)
+        selectedStudentId = student.student_id; // ✅ FIXED (was student.id)
         selectedStudentName = student.full_name;
 
         document.getElementById("modalStudentName").innerText =
@@ -121,26 +152,26 @@
     const status = document.getElementById("modalStatus").value;
 
     const now = new Date();
-    const timeString = now.toLocaleTimeString([], {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: true
-    });
+
+    const hours = String(now.getHours()).padStart(2, "0");
+    const minutes = String(now.getMinutes()).padStart(2, "0");
+
+    const timeString = `${hours}:${minutes}`;
 
     fetch(`${API}/attendance/mark`, {
         method:"POST",
         headers:{
             "Content-Type":"application/json"
         },
-        body:JSON.stringify({
+        body: JSON.stringify({
             student_id: selectedStudentId,
             status: status,
             time: timeString
         })
     })
     .then(res => res.text())
-    .then(() => {
-        alert(`${selectedStudentName} marked ${status} at ${timeString}`);
+    .then(msg => {
+        alert(msg);
         closeModal();
     });
 }
@@ -223,14 +254,18 @@
                 if(selectedSection && section !== selectedSection) continue;
 
                 html += `<h3>Section: ${section}</h3><table><thead><tr>
-                    <th>ID</th><th>Name</th><th>Gender</th><th>Email</th><th>Parent</th>
+                    <th>Student_ID</th>
+                    <th>Name</th>
+                    <th>Gender</th>
+                    <th>Email</th>
+                    <th>Parent</th>
                 </tr></thead><tbody>`;
 
                 grouped[section].forEach(student => {
 
                     html += `
                         <tr>
-                            <td>${student.id}</td>
+                            <td>${student.student_id}</td>
                             <td>${student.full_name}</td>
                             <td>${student.gender}</td>
                             <td>${student.student_email}</td>
@@ -266,6 +301,7 @@
                 if(selectedSection && section !== selectedSection) continue;
 
                 html += `<h3>Section: ${section}</h3><table><thead><tr>
+                    <th>Student_ID</th>
                     <th>Name</th>
                     <th>Gender</th>
                     <th>Time In</th>
@@ -276,19 +312,21 @@
 
                     html += `
                         <tr>
+                            <td>
+                                ${student.student_id}
+
                             <td style="cursor:pointer;color:#166534;font-weight:bold"
                                 onclick='openAttendancePopup(${JSON.stringify(student)})'>
                                 ${student.full_name}
                             </td>
-
                             <td>${student.gender}</td>
 
-<td>
-    <input type="time" id="time-${student.id}" style="padding:5px">
-</td>
+                            <td>
+                                <input type="time" id="time-${student.id}" style="padding:5px">
+                            </td>
 
-<td>
-    <select id="status-${student.id}">
+                            <td>
+                                <select id="status-${student.id}">
                                     <option value="Present">Present</option>
                                     <option value="Absent">Absent</option>
                                     <option value="Late">Late</option>
@@ -314,20 +352,18 @@
     }
 
     // ======================================
-    function saveAttendance(){
-
+    function saveAttendance() {
     const rows = document.querySelectorAll("select[id^='status-']");
     const requests = [];
 
     rows.forEach(select => {
-
         const studentId = select.id.replace("status-", "");
         const status = select.value;
 
         const timeInput = document.getElementById(`time-${studentId}`);
         const time24 = timeInput ? timeInput.value : "";
 
-        const time12 = to12Hour(time24); // ✅ convert here
+        const time12 = to12Hour(time24);
 
         requests.push(
             fetch(`${API}/attendance/mark`, {
@@ -338,117 +374,175 @@
                 body: JSON.stringify({
                     student_id: studentId,
                     status: status,
-                    time: time12
+                    time:
+                        time24 ||
+                        new Date().toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false
+                        })
+
                 })
             })
         );
     });
 
     Promise.all(requests)
-    .then(() => {
-        alert("Attendance saved successfully!");
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Error saving attendance");
-    });
+        .then(() => {
+            alert("Attendance saved successfully!");
+        })
+        .catch(error => {
+            console.error("Error saving attendance:", error);
+            alert("Failed to save attendance.");
+        });
 }
+
 
     // ======================================
     // ✅ YOUR REPORTS FUNCTION (UNCHANGED)
     // ======================================
     function viewReports(selectedSection = "", selectedDate = "") {
 
-    let url = `${API}/attendance/reports`;
+    fetch(`${API}/attendance/reports`)
+        .then(res => res.json())
+        .then(data => {
 
-    if (selectedDate) {
-        url += `?date=${selectedDate}`;
-    }
-
-    fetch(url)
-    .then(res => res.json())
-    .then(data => {
-
-        // GROUP BY SECTION (no sorting now)
-        const grouped = {};
-
-        data.forEach(item => {
-            if (!grouped[item.section]) {
-                grouped[item.section] = [];
+            // filter section
+            if (selectedSection) {
+                data = data.filter(
+                    item => item.section === selectedSection
+                );
             }
-            grouped[item.section].push(item);
-        });
 
-        const sections = Object.keys(grouped);
+            // filter date
+            if (selectedDate) {
+                data = data.filter(item => {
 
-        let html = `<div class="card"><h2>Attendance Reports</h2>`;
+                    const dbDate =
+                        new Date(item.date)
+                        .toISOString()
+                        .split("T")[0];
 
-        // FILTER UI (section + date only)
-        html += `
-            <div class="filters">
+                    return dbDate === selectedDate;
+                });
+            }
 
-                <div class="section-filter">
-                    <label>Section:</label>
-                    <select onchange="viewReports(this.value, '${selectedDate}')">
-                        <option value="">All Sections</option>
-                        ${sections.map(sec => `
-                            <option value="${sec}" ${sec === selectedSection ? "selected" : ""}>
-                                ${sec}
-                            </option>
-                        `).join("")}
-                    </select>
-                </div>
+            // newest first
+            data.sort((a, b) =>
+                new Date(b.date + " " + (b.time || "00:00")) -
+                new Date(a.date + " " + (a.time || "00:00"))
+            );
 
-                <div class="date-filter">
-                    <label>Date:</label>
-                    <input type="date"
-                        value="${selectedDate}"
-                        onchange="viewReports('${selectedSection}', this.value)">
-                </div>
+            // group by section
+            const grouped = {};
 
-            </div>
-        `;
+            data.forEach(item => {
 
-        // TABLES
-        for (const section in grouped) {
+                const section = item.section || "No Section";
 
-            if (selectedSection && section !== selectedSection) continue;
+                if (!grouped[section]) {
+                    grouped[section] = [];
+                }
 
-            html += `
-                <h3>Section: ${section}</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Student Name</th>
-                            <th>Gender</th>
-                            <th>Status</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            grouped[section].forEach(report => {
-
-                html += `
-                    <tr>
-                        <td>${report.full_name}</td>
-                        <td>${report.gender}</td>
-                        <td>${report.status}</td>
-                        <td>${formatDateMMDDYYYY(report.date)}</td>
-                        <td>${formatTime12Hour(report.time)}</td>
-                    </tr>
-                `;
+                grouped[section].push(item);
             });
 
-            html += `</tbody></table><br>`;
-        }
+            const sections = [
+                ...new Set(
+                    data.map(item => item.section)
+                )
+            ];
 
-        html += `</div>`;
+            let html = `
+                <div class="card">
+                    <h2>Attendance Reports</h2>
 
-        document.getElementById("mainContent").innerHTML = html;
-    });
+                    <div class="filters">
+
+                        <div class="section-filter">
+                            <label>Section:</label>
+
+                            <select
+                                onchange="viewReports(this.value, '${selectedDate}')">
+
+                                <option value="">All Sections</option>
+
+                                ${sections.map(sec => `
+                                    <option value="${sec}"
+                                        ${sec === selectedSection ? "selected" : ""}>
+                                        ${sec}
+                                    </option>
+                                `).join("")}
+
+                            </select>
+                        </div>
+
+                        <div class="date-filter">
+                            <label>Date:</label>
+
+                            <input
+                                type="date"
+                                value="${selectedDate}"
+                                onchange="viewReports('${selectedSection}', this.value)">
+                        </div>
+
+                    </div>
+            `;
+
+            for (const section in grouped) {
+
+                html += `
+                    <h3>Section: ${section}</h3>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th>Gender</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                `;
+
+                grouped[section].forEach(report => {
+
+                    html += `
+                        <tr>
+                            <td>${report.student_id}</td>
+                            <td>${report.full_name}</td>
+                            <td>${report.gender}</td>
+                            <td>${report.status}</td>
+                            <td>${formatDateMMDDYYYY(report.date)}</td>
+                            <td>${formatTime12Hour(report.time)}</td>
+                        </tr>
+                    `;
+                });
+
+                html += `
+                        </tbody>
+                    </table>
+                    <br>
+                `;
+            }
+
+            if (data.length === 0) {
+                html += `<p>No attendance records found.</p>`;
+            }
+
+            html += `</div>`;
+
+            document.getElementById("mainContent").innerHTML = html;
+        })
+        .catch(err => {
+            console.error(err);
+
+            alert("Failed to load reports.");
+        });
 }
 
     // ======================================
@@ -457,25 +551,44 @@
         window.location.href = "index.html";
     }
 
+    function showLogoutModal() {
+
+    document.getElementById("logoutModal").style.display =
+        "flex";
+}
+
+function closeLogoutModal() {
+
+    document.getElementById("logoutModal").style.display =
+        "none";
+}
+
     loadStudents();
 
     function formatDateMMDDYYYY(dateStr) {
-    const d = new Date(dateStr);
+        const d = new Date(dateStr);
+        const mm = String(d.getMonth() + 1).padStart(2, "0");
+        const dd = String(d.getDate()).padStart(2, "0");
+        const yyyy = d.getFullYear();
 
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    const yyyy = d.getFullYear();
+        return `${mm}/${dd}/${yyyy}`;
+    }
 
-    return `${mm}/${dd}/${yyyy}`;
-}
+    function formatTime12Hour(timeStr) {
 
-function formatTime12Hour(timeStr) {
     if (!timeStr) return "";
 
+    // already contains AM/PM
+    if (/AM|PM/i.test(timeStr)) {
+        return timeStr.trim();
+    }
+
     const [hourStr, min] = timeStr.split(":");
-    let hour = parseInt(hourStr);
+
+    let hour = parseInt(hourStr, 10);
 
     const period = hour >= 12 ? "PM" : "AM";
+
     hour = hour % 12 || 12;
 
     return `${hour}:${min} ${period}`;

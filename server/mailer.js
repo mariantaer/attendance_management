@@ -8,7 +8,6 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-// SIMPLE EMAIL SENDER ONLY
 function sendEmail(mailOptions) {
     return transporter.sendMail(mailOptions);
 }
