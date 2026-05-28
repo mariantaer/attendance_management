@@ -14,44 +14,17 @@ const db = mysql.createConnection({
 });
 
 // ===============================
-// TIME FORMATTER
-// ===============================
-function formatTime12Hour(timeStr) {
-
-    if (!timeStr) return "";
-
-    // already formatted
-    if (/AM|PM/i.test(timeStr)) {
-        return timeStr.trim();
-    }
-
-    const parts = timeStr.split(":");
-
-    let hour = parseInt(parts[0], 10);
-    const minute = parts[1];
-
-    const period = hour >= 12 ? "PM" : "AM";
-
-    hour = hour % 12 || 12;
-
-    return `${hour}:${minute} ${period}`;
-}
-
-// ===============================
 // MARK ATTENDANCE + EMAIL
 // ===============================
 router.post("/mark", (req, res) => {
 
-    console.log(req.body);
+    const { student_id, status, time } = req.body;
 
-    const {
-        student_id,
-        status: manualStatus,
-        time
-    } = req.body;
-
-    if (!student_id) {
-        return res.status(400).send("Missing student ID");
+    if (!student_id || !status) {
+        return res.status(400).json({
+            success: false,
+            message: "Missing required fields"
+        });
     }
 
     const now = new Date();
@@ -59,147 +32,109 @@ router.post("/mark", (req, res) => {
     const date =
         now.toISOString().split("T")[0];
 
-    // use current time if blank
+    // SAVE AS 24-HOUR FORMAT
     const finalTime =
-        time ||
-        `${String(now.getHours()).padStart(2, "0")}:${String(
-            now.getMinutes()
-        ).padStart(2, "0")}`;
+        time &&
+        time !== ""
+            ? time
+            : now.toLocaleTimeString("en-GB", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+                hour12: false
+            });
 
-    const formattedTime =
-        formatTime12Hour(finalTime);
-
-    const finalStatus =
-        manualStatus || "Present";
-
-    const insertQuery = `
-        INSERT INTO attendance
-        (
-            student_id,
-            status,
-            date,
-            time
-        )
-        VALUES (?, ?, ?, ?)
-    `;
-
+    // ===============================
+    // FIND STUDENT
+    // ===============================
     db.query(
-        insertQuery,
-        [
-            student_id,
-            finalStatus,
-            date,
-            formattedTime
-        ],
-        (err) => {
+        "SELECT * FROM students WHERE id = ?",
+        [student_id],
+        (err, studentResult) => {
 
             if (err) {
-                console.log("DB ERROR:", err);
-                return res
-                    .status(500)
-                    .send(err.message);
+
+                console.error(
+                    "STUDENT ERROR:",
+                    err
+                );
+
+                return res.status(500).json({
+                    success: false,
+                    message: "Database error"
+                });
             }
 
-            const getStudent = `
-                SELECT
-                    student_id,
-                    full_name,
-                    section,
-                    student_email,
-                    parent_email
-                FROM students
-                WHERE student_id = ?
-            `;
+            if (
+                studentResult.length === 0
+            ) {
 
+                return res.status(404).json({
+                    success: false,
+                    message: "Student not found"
+                });
+            }
+
+            const student =
+                studentResult[0];
+
+            // ===============================
+            // INSERT ONLY
+            // ===============================
             db.query(
-                getStudent,
-                [student_id],
-                async (err, results) => {
+                `
+                INSERT INTO attendance
+                (
+                    student_id,
+                    name,
+                    section,
+                    status,
+                    date,
+                    time
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                `,
+                [
+                    student.student_id,
+                    student.full_name,
+                    student.section,
+                    status,
+                    date,
+                    finalTime
+                ],
+                (insertErr, result) => {
 
-                    if (
-                        err ||
-                        results.length === 0
-                    ) {
-                        return res.send(
-                            "Attendance saved."
+                    if (insertErr) {
+
+                        console.error(
+                            "INSERT ERROR:",
+                            insertErr
                         );
+
+                        return res.status(500).json({
+                            success: false,
+                            message:
+                                insertErr.message
+                        });
                     }
 
-                    const student =
-                        results[0];
+                    console.log(
+                        "Attendance Saved:",
+                        result.insertId
+                    );
 
-                    const mailOptions = {
-                        from:
-                            `"PTC Attendance System" <ptc.attendance.system@gmail.com>`,
+                    sendAttendanceEmail(
+                        student,
+                        status,
+                        date,
+                        finalTime
+                    );
 
-                        to:
-                            `${student.student_email}, ${student.parent_email}`,
-
-                        subject:
-                            `Attendance Notification - ${student.full_name}`,
-
-                        html: `
-                            <div style="font-family:Arial;">
-                                <h2>Attendance Notification</h2>
-
-                                <p>
-                                    <strong>Student ID:</strong>
-                                    ${student.student_id}
-                                </p>
-
-                                <p>
-                                    <strong>Name:</strong>
-                                    ${student.full_name}
-                                </p>
-
-                                <p>
-                                    <strong>Section:</strong>
-                                    ${student.section}
-                                </p>
-
-                                <p>
-                                    Status:
-                                    <strong style="color:${
-                                        finalStatus === "Present"
-                                            ? "green"
-                                            : finalStatus === "Late"
-                                            ? "orange"
-                                            : "red"
-                                    }">
-                                        ${finalStatus}
-                                    </strong>
-                                </p>
-
-                                <p>
-                                    <strong>Date:</strong>
-                                    ${date}
-                                </p>
-
-                                <p>
-                                    <strong>Time:</strong>
-                                    ${formattedTime}
-                                </p>
-                            </div>
-                        `
-                    };
-
-                    try {
-                        await sendEmail(mailOptions);
-
-                        res.send(
-                            `Saved + Email Sent (${finalStatus})`
-                        );
-                    } catch (emailErr) {
-
-                        console.log(
-                            "EMAIL ERROR:",
-                            emailErr
-                        );
-
-                        res.send(
-                            "Attendance saved but email failed."
-                        );
-                    }
+                    return res.json({
+                        success: true,
+                        message:
+                            "Attendance saved"
+                    });
                 }
             );
         }
@@ -207,63 +142,117 @@ router.post("/mark", (req, res) => {
 });
 
 // ===============================
-// REPORTS ROUTE
+// EMAIL FUNCTION
+// ===============================
+function sendAttendanceEmail(
+    student,
+    status,
+    date,
+    time
+) {
+
+    // skip if blank/null
+    if (
+        !student.student_email ||
+        student.student_email.trim() === ""
+    ) {
+
+        console.log(
+            `Email skipped for student ${student.id}`
+        );
+
+        return;
+    }
+
+    const subject =
+        "Attendance Confirmation";
+
+    const html = `
+        <h2>Attendance Confirmation</h2>
+
+        <p><b>Student ID:</b>
+            ${student.student_id}
+        </p>
+
+        <p><b>Name:</b>
+            ${student.full_name}
+        </p>
+
+        <p><b>Section:</b>
+            ${student.section}
+        </p>
+
+        <p><b>Status:</b>
+            ${status}
+        </p>
+
+        <p><b>Date:</b>
+            ${date}
+        </p>
+
+        <p><b>Time:</b>
+            ${time}
+        </p>
+    `;
+
+    sendEmail(
+        student.student_email,
+        subject,
+        html
+    ).catch(err => {
+
+        console.error(
+            "EMAIL ERROR:",
+            err.message
+        );
+    });
+}
+
+// ===============================
+// REPORTS
 // ===============================
 router.get("/reports", (req, res) => {
 
-    const { date } = req.query;
-
-    let query = `
+    const sql = `
         SELECT
+            a.id,
             s.student_id,
             s.full_name,
             s.gender,
             s.section,
             a.status,
             DATE_FORMAT(a.date, '%Y-%m-%d') AS date,
-            a.time
+            TIME_FORMAT(a.time, '%H:%i:%s') AS time
+
         FROM attendance a
-        INNER JOIN students s
-            ON s.student_id = a.student_id
+
+        JOIN students s
+            ON s.id = a.student_id
+
+        ORDER BY a.id DESC
     `;
 
-    const params = [];
+    db.query(sql, (err, results) => {
 
-    if (date && date !== "") {
-        query += `
-            WHERE DATE(a.date) = DATE(?)
-        `;
-        params.push(date);
-    }
+        if (err) {
 
-    query += `
-        ORDER BY
-            a.date DESC,
-            a.time DESC
-    `;
+            console.error(
+                "REPORT ERROR:",
+                err
+            );
 
-    db.query(
-        query,
-        params,
-        (err, results) => {
-
-            if (err) {
-                console.log(err);
-
-                return res
-                    .status(500)
-                    .json({
-                        error:
-                            err.message
-                    });
-            }
-
-            res.json(results);
+            return res.status(500).json({
+                error: err.message
+            });
         }
-    );
+
+        console.log(
+            "REPORT DATA:",
+            results
+        );
+
+        res.json(results);
+    });
 });
 
-// ===============================
-// EXPORT
-// ===============================
 module.exports = router;

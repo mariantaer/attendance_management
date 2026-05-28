@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 08, 2026 at 04:21 PM
+-- Generation Time: May 28, 2026 at 01:35 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -30,6 +30,8 @@ SET time_zone = "+00:00";
 CREATE TABLE `attendance` (
   `id` int(11) NOT NULL,
   `student_id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `section` varchar(50) NOT NULL,
   `status` enum('Present','Absent','Late') NOT NULL,
   `date` date NOT NULL,
   `time` varchar(20) DEFAULT NULL
@@ -39,30 +41,9 @@ CREATE TABLE `attendance` (
 -- Dumping data for table `attendance`
 --
 
-INSERT INTO `attendance` (`id`, `student_id`, `status`, `date`, `time`) VALUES
-(6, 1, 'Present', '2026-05-07', NULL),
-(7, 1, 'Late', '2026-05-07', NULL),
-(8, 1, 'Present', '2026-05-07', NULL),
-(9, 1, 'Late', '2026-05-07', NULL),
-(10, 1, 'Present', '2026-05-07', NULL),
-(11, 1, 'Present', '2026-05-07', NULL),
-(12, 2, 'Present', '2026-05-07', NULL),
-(13, 1, 'Present', '2026-05-07', NULL),
-(14, 2, 'Absent', '2026-05-07', NULL),
-(15, 1, 'Present', '2026-05-07', NULL),
-(16, 2, 'Present', '2026-05-07', NULL);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `settings`
---
-
-CREATE TABLE `settings` (
-  `id` int(11) NOT NULL,
-  `email_notifications` tinyint(1) DEFAULT 1,
-  `attendance_rules` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+INSERT INTO `attendance` (`id`, `student_id`, `name`, `section`, `status`, `date`, `time`) VALUES
+(71, 1, 'Marian Lee C. Taer', 'BSIT-3J', 'Present', '2026-05-28', '19:34'),
+(72, 2, 'Mary Claire C. Taer', 'BSIT-4B', 'Present', '2026-05-28', '18:44');
 
 -- --------------------------------------------------------
 
@@ -83,6 +64,10 @@ CREATE TABLE `students` (
 --
 -- Dumping data for table `students`
 --
+
+INSERT INTO `students` (`id`, `student_id`, `full_name`, `gender`, `section`, `parent_email`, `student_email`) VALUES
+(1, '23BSIT-0503', 'Marian Lee C. Taer', 'Female', 'BSIT-3J', 'matildecervantes67@gmail.com', 'marianleetaer@gmail.com'),
+(2, '2022-6511', 'Mary Claire C. Taer', 'Female', 'BSIT-4B', 'marianleetaer@gmail.com', 'marygemini01@gmail.com');
 
 -- --------------------------------------------------------
 
@@ -105,7 +90,11 @@ CREATE TABLE `users` (
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`) VALUES
 (1, 'System Admin', 'admin@gmail.com', 'admin123', 'admin'),
 (2, 'Teacher One', 'teacher@gmail.com', 'teacher123', 'teacher'),
-(3, 'Marian', 'mariancervantes.taer@gmail.com', '123456', 'teacher');
+(3, 'Marian', 'mariancervantes.taer@gmail.com', '123456', 'teacher'),
+(4, 'Claire', 'claire@gmail.com', '123456', 'teacher'),
+(5, 'marian', 'marian@gmail.com', '123456', 'teacher'),
+(6, 'Lee', 'lee@gmail.com', '123456', 'teacher'),
+(7, 'Marian Lee C. Taer', 'admin1@gmail.com', '123456', 'teacher');
 
 --
 -- Indexes for dumped tables
@@ -117,12 +106,6 @@ INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`) VALUES
 ALTER TABLE `attendance`
   ADD PRIMARY KEY (`id`),
   ADD KEY `student_id` (`student_id`);
-
---
--- Indexes for table `settings`
---
-ALTER TABLE `settings`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `students`
@@ -145,35 +128,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
-
---
--- AUTO_INCREMENT for table `settings`
---
-ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT for table `students`
 --
 ALTER TABLE `students`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- Constraints for dumped tables
---
-
---
--- Constraints for table `attendance`
---
-ALTER TABLE `attendance`
-  ADD CONSTRAINT `attendance_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `students` (`id`) ON DELETE CASCADE;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

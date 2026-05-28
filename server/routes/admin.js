@@ -23,4 +23,28 @@ router.post("/teacher", (req, res) => {
     );
 });
 
+router.delete("/teachers/:id", (req, res) => {
+
+    const id = req.params.id;
+
+    db.query(
+        "DELETE FROM users WHERE id = ? AND role = 'teacher'",
+        [id],
+        (err) => {
+
+            if (err) {
+                console.error(err);
+
+                return res.status(500).json({
+                    message: "Failed to delete teacher"
+                });
+            }
+
+            res.json({
+                message: "Teacher deleted successfully"
+            });
+        }
+    );
+});
+
 module.exports = router;

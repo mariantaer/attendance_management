@@ -526,3 +526,59 @@ h3 {
         font-size: 22px;
     }
 }
+
+/* EMAIL SENT MODAL */
+#emailSentModal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.45);
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#emailSentModal .modal-content {
+    background: #fff;
+    width: 420px;
+    max-width: 90%;
+    padding: 28px;
+    border-radius: 14px;
+    text-align: center;
+}
+
+#emailSentModal h2 {
+    margin: 0 0 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: #166534;
+}
+
+#emailSentModal p {
+    margin: 0 0 22px;
+    font-size: 15px;
+    line-height: 1.5;
+    color: #374151;
+}
+
+#emailSentModal .modal-actions {
+    display: flex;
+    justify-content: center;
+}
+
+#emailSentModal .delete-btn {
+    background: #166534;
+    color: #fff;
+    border: none;
+    padding: 10px 26px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+#emailSentModal .delete-btn:hover {
+    background: #14532d;
+}
+

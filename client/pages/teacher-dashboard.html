@@ -5,19 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Teacher Dashboard</title>
 
+
     <link rel="stylesheet" href="../css/tdashboard.css">
+
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
+
 </head>
+
 
 <!-- ATTENDANCE MODAL -->
 <div id="attendanceModal">
     <div class="modal-box">
 
+
         <h2>Mark Attendance</h2>
 
+
         <h3 id="modalStudentName"></h3>
+
 
         <select id="modalStatus">
             <option value="Present">Present</option>
@@ -25,44 +32,121 @@
             <option value="Late">Late</option>
         </select>
 
+
         <div class="modal-buttons">
+
 
             <button class="btn-save" onclick="saveSingleAttendance()">
                 Save
             </button>
 
+
             <button class="btn-cancel" onclick="closeModal()">
                 Cancel
             </button>
 
+
         </div>
+
 
     </div>
 </div>
 
+
 <!-- LOGOUT MODAL -->
 <div id="logoutModal" class="modal-overlay">
 
+
     <div class="modal-content">
+
 
         <h2 id="logoutTitle">
             Logout
         </h2>
 
+
         <p id="logoutMessage">
             Are you sure you want to logout?
         </p>
 
+
         <div class="modal-actions">
+
 
             <button class="back-btn"
                 onclick="closeLogoutModal()">
                 Cancel
             </button>
 
+
             <button class="delete-btn"
                 onclick="logout()">
                 Logout
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+<div id="emailSentModal" class="modal-overlay">
+
+
+    <div class="modal-content">
+
+
+        <h2>Email Sent</h2>
+
+
+        <p>
+            Attendance has been saved and
+            email notification sent successfully.
+        </p>
+
+
+        <div class="modal-actions">
+
+
+            <button
+                class="delete-btn"
+                onclick="closeEmailSentModal()">
+
+
+                OK
+            </button>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+<!-- SINGLE ATTENDANCE SUCCESS MODAL -->
+<div id="singleAttendanceModal" class="modal-overlay">
+
+    <div class="modal-content">
+
+        <h2>Attendance Saved</h2>
+
+        <p>
+            Attendance has been saved successfully.
+        </p>
+
+        <div class="modal-actions">
+
+            <button
+                class="delete-btn"
+                onclick="closeSingleAttendanceModal()">
+
+                OK
             </button>
 
         </div>
@@ -71,141 +155,216 @@
 
 </div>
 
+
 <body>
+
 
     <!-- SIDEBAR -->
     <aside class="sidebar">
+
 
         <div class="logo-area">
             <img src="../images/PTC LOGO.png" alt="Logo">
             <h2>PTC AMS</h2>
         </div>
 
+
         <button onclick="loadStudents()">
             Students
         </button>
+
 
         <button onclick="showAttendance()">
             Attendance
         </button>
 
+
         <button onclick="viewReports()">
             Reports
         </button>
+
 
         <button class="logout-btn" onclick="showLogoutModal()">
             Logout
         </button>
 
+
         </aside>
+
 
     <!-- MAIN -->
     <div class="main">
+
 
         <!-- TOPBAR -->
         <header class="topbar">
             <h1>Teacher Dashboard</h1>
         </header>
 
+
         <!-- CONTENT -->
         <main id="mainContent"></main>
 
+
     </div>
 
+
 <script>
+
 
     function to12Hour(time24) {
     if (!time24) return "";
 
+
     let [hours, minutes] = time24.split(":");
     hours = parseInt(hours);
+
 
     const period = hours >= 12 ? "PM" : "AM";
     hours = hours % 12 || 12;
 
+
     return `${hours}:${minutes} ${period}`;
 }
+
 
     let selectedStudentId = null;
     let selectedStudentName = "";
 
+
     const API = "http://localhost:3000";
+
 
     // ================= FIXED POPUP =================
     function openAttendancePopup(student){
 
-        selectedStudentId = student.student_id; // ✅ FIXED (was student.id)
-        selectedStudentName = student.full_name;
 
-        document.getElementById("modalStudentName").innerText =
-            student.full_name;
+    // use DB primary key
+    selectedStudentId = student.id;
 
-        document.getElementById("attendanceModal").style.display = "flex";
+
+    selectedStudentName = student.full_name;
+
+
+    document.getElementById("modalStudentName").innerText =
+        student.full_name;
+
+
+    document.getElementById("attendanceModal").style.display = "flex";
     }
+
 
     function closeModal(){
         document.getElementById("attendanceModal").style.display = "none";
     }
 
-    function saveSingleAttendance(){
 
-    const status = document.getElementById("modalStatus").value;
+    function saveSingleAttendance() {
+
+    const status =
+        document.getElementById(
+            "modalStatus"
+        ).value;
 
     const now = new Date();
 
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
+    const hours =
+        String(now.getHours())
+        .padStart(2, "0");
 
-    const timeString = `${hours}:${minutes}`;
+    const minutes =
+        String(now.getMinutes())
+        .padStart(2, "0");
 
-    fetch(`${API}/attendance/mark`, {
-        method:"POST",
-        headers:{
-            "Content-Type":"application/json"
-        },
-        body: JSON.stringify({
-            student_id: selectedStudentId,
-            status: status,
-            time: timeString
-        })
-    })
-    .then(res => res.text())
-    .then(msg => {
-        alert(msg);
+    const timeString =
+        `${hours}:${minutes}`;
+
+    fetch(
+        `${API}/attendance/mark`,
+        {
+            method: "POST",
+
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+
+            body: JSON.stringify({
+
+                student_id:
+                    selectedStudentId,
+
+                status:
+                    status,
+
+                time:
+                    timeString
+            })
+        }
+    )
+
+    .then(res => res.json())
+
+    .then(data => {
+
+        console.log(data);
+
         closeModal();
+
+        openSingleAttendanceModal();
+    })
+
+    .catch(err => {
+
+        console.error(err);
+
+        alert(
+            "Failed to save attendance"
+        );
     });
 }
+
 
     // ======================================
     function groupBySection(data){
 
+
         const grouped = {};
 
+
         data.sort((a, b) => {
+
 
             const genderCompare =
             (a.gender || "")
             .localeCompare(b.gender || "");
 
+
             if(genderCompare !== 0){
                 return genderCompare;
             }
+
 
             return (a.full_name || "")
             .localeCompare(b.full_name || "");
         });
 
+
         data.forEach(item => {
+
 
             if(!grouped[item.section]){
                 grouped[item.section] = [];
             }
 
+
             grouped[item.section].push(item);
         });
 
+
         return grouped;
     }
+
 
     // ======================================
     function createSectionDropdown(
@@ -215,6 +374,7 @@
         selectedDate = ""
     ){
 
+
         let html = `
             <div class="section-filter">
                 <label>Select Section:</label>
@@ -222,7 +382,9 @@
                     <option value="">All Sections</option>
         `;
 
+
         sections.forEach(section => {
+
 
             html += `
                 <option value="${section}" ${selectedValue === section ? "selected" : ""}>
@@ -231,27 +393,36 @@
             `;
         });
 
+
         html += `</select></div>`;
         return html;
     }
 
+
     // ======================================
     function loadStudents(selectedSection = ""){
+
 
         fetch(`${API}/teacher/students`)
         .then(res => res.json())
         .then(data => {
 
+
             const grouped = groupBySection(data);
             const sections = Object.keys(grouped);
 
+
             let html = `<div class="card"><h2>Students List</h2>`;
+
 
             html += createSectionDropdown(sections, selectedSection, "loadStudents");
 
+
             for(const section in grouped){
 
+
                 if(selectedSection && section !== selectedSection) continue;
+
 
                 html += `<h3>Section: ${section}</h3><table><thead><tr>
                     <th>Student_ID</th>
@@ -261,7 +432,9 @@
                     <th>Parent</th>
                 </tr></thead><tbody>`;
 
+
                 grouped[section].forEach(student => {
+
 
                     html += `
                         <tr>
@@ -274,31 +447,41 @@
                     `;
                 });
 
+
                 html += `</tbody></table><br>`;
             }
+
 
             html += `</div>`;
             document.getElementById("mainContent").innerHTML = html;
         });
     }
 
+
     // ======================================
     function showAttendance(selectedSection = ""){
+
 
         fetch(`${API}/teacher/students`)
         .then(res => res.json())
         .then(data => {
 
+
             const grouped = groupBySection(data);
             const sections = Object.keys(grouped);
 
+
             let html = `<div class="card"><h2>Mark Attendance</h2>`;
+
 
             html += createSectionDropdown(sections, selectedSection, "showAttendance");
 
+
             for(const section in grouped){
 
+
                 if(selectedSection && section !== selectedSection) continue;
+
 
                 html += `<h3>Section: ${section}</h3><table><thead><tr>
                     <th>Student_ID</th>
@@ -308,22 +491,30 @@
                     <th>Status</th>
                 </tr></thead><tbody>`;
 
+
                 grouped[section].forEach(student => {
+
 
                     html += `
                         <tr>
-                            <td>
-                                ${student.student_id}
+                            <td>${student.student_id}</td>
+
 
                             <td style="cursor:pointer;color:#166534;font-weight:bold"
                                 onclick='openAttendancePopup(${JSON.stringify(student)})'>
                                 ${student.full_name}
                             </td>
+
+
                             <td>${student.gender}</td>
 
+
                             <td>
-                                <input type="time" id="time-${student.id}" style="padding:5px">
+                                <input type="time"
+                                    id="time-${student.id}"
+                                    style="padding:5px">
                             </td>
+
 
                             <td>
                                 <select id="status-${student.id}">
@@ -336,8 +527,10 @@
                     `;
                 });
 
+
                 html += `</tbody></table><br>`;
             }
+
 
             html += `
                 <div class="save-wrapper">
@@ -347,98 +540,236 @@
                 </div>
             </div>`;
 
+
             document.getElementById("mainContent").innerHTML = html;
         });
     }
 
+
     // ======================================
     function saveAttendance() {
-    const rows = document.querySelectorAll("select[id^='status-']");
+
+    const rows =
+        document.querySelectorAll(
+            "select[id^='status-']"
+        );
+
     const requests = [];
 
     rows.forEach(select => {
-        const studentId = select.id.replace("status-", "");
-        const status = select.value;
 
-        const timeInput = document.getElementById(`time-${studentId}`);
-        const time24 = timeInput ? timeInput.value : "";
+        const studentId =
+            select.id.replace(
+                "status-",
+                ""
+            );
 
-        const time12 = to12Hour(time24);
+        const status =
+            select.value;
+
+        const timeInput =
+            document.getElementById(
+                `time-${studentId}`
+            );
+
+        const time24 =
+            timeInput
+                ? timeInput.value
+                : "";
+
+        // SKIP IF NO TIME
+        if (!time24) {
+            return;
+        }
 
         requests.push(
-            fetch(`${API}/attendance/mark`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    student_id: studentId,
-                    status: status,
-                    time:
-                        time24 ||
-                        new Date().toLocaleTimeString([], {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false
-                        })
 
-                })
-            })
+            fetch(
+                `${API}/attendance/mark`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+
+                        student_id:
+                            studentId,
+
+                        status:
+                            status,
+
+                        time:
+                            time24
+                    })
+                }
+            )
         );
     });
 
     Promise.all(requests)
-        .then(() => {
-            alert("Attendance saved successfully!");
+
+        .then(async responses => {
+
+            for (const res of responses) {
+
+                const data =
+                    await res.json();
+
+                console.log(data);
+            }
+
+            openEmailSentModal();
         })
-        .catch(error => {
-            console.error("Error saving attendance:", error);
-            alert("Failed to save attendance.");
+
+        .catch(err => {
+
+            console.error(
+                "ERROR:",
+                err
+            );
+
+            alert(
+                "Failed to save attendance."
+            );
+        });
+
+
+        Promise.all(requests)
+
+        .then(async responses => {
+
+            for (const res of responses) {
+
+                const data = await res.json();
+
+                console.log(data);
+
+            }
+
+            openEmailSentModal();
+
+        })
+
+
+        .then(res => res.text())
+
+
+        .then(() => {
+
+
+            openEmailSentModal();
+
+
+        })
+
+
+        .catch(err => {
+
+
+            console.error(
+                "ERROR:",
+                err
+            );
+
+
+            alert(
+                "Failed to save attendance or send email."
+            );
         });
 }
+
+
+function sendAttendanceEmails() {
+
+
+    fetch(`${API}/attendance/send-emails`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.text())
+    .then(() => {
+
+
+        openEmailSentModal();
+
+
+    })
+   
+    .catch(err => {
+
+
+        console.error(
+            "EMAIL ERROR:",
+            err
+        );
+
+
+        alert(
+            "Failed to send emails."
+        );
+    });
+}
+
 
 
     // ======================================
     // ✅ YOUR REPORTS FUNCTION (UNCHANGED)
     // ======================================
-    function viewReports(selectedSection = "", selectedDate = "") {
+    function viewReports(
+    selectedSection = "",
+    selectedDate = ""
+) {
 
-    fetch(`${API}/attendance/reports`)
+    fetch(
+        `${API}/attendance/reports`
+    )
         .then(res => res.json())
+
         .then(data => {
 
-            // filter section
+            // section filter
             if (selectedSection) {
+
                 data = data.filter(
-                    item => item.section === selectedSection
+                    item =>
+                        item.section ===
+                        selectedSection
                 );
             }
 
-            // filter date
+            // date filter
             if (selectedDate) {
-                data = data.filter(item => {
 
-                    const dbDate =
-                        new Date(item.date)
-                        .toISOString()
-                        .split("T")[0];
-
-                    return dbDate === selectedDate;
-                });
+                data = data.filter(
+                    item =>
+                        item.date ===
+                        selectedDate
+                );
             }
 
             // newest first
-            data.sort((a, b) =>
-                new Date(b.date + " " + (b.time || "00:00")) -
-                new Date(a.date + " " + (a.time || "00:00"))
+            data.sort(
+                (a, b) =>
+                    `${b.date} ${b.time || "00:00"}`
+                    .localeCompare(
+                        `${a.date} ${a.time || "00:00"}`
+                    )
             );
 
-            // group by section
+            // group
             const grouped = {};
 
             data.forEach(item => {
 
-                const section = item.section || "No Section";
+                const section =
+                    item.section ||
+                    "No Section";
 
                 if (!grouped[section]) {
                     grouped[section] = [];
@@ -449,7 +780,10 @@
 
             const sections = [
                 ...new Set(
-                    data.map(item => item.section)
+                    data.map(
+                        item =>
+                            item.section
+                    )
                 )
             ];
 
@@ -463,13 +797,18 @@
                             <label>Section:</label>
 
                             <select
-                                onchange="viewReports(this.value, '${selectedDate}')">
+                                onchange="viewReports(this.value,'${selectedDate}')">
 
-                                <option value="">All Sections</option>
+                                <option value="">
+                                    All Sections
+                                </option>
 
                                 ${sections.map(sec => `
-                                    <option value="${sec}"
-                                        ${sec === selectedSection ? "selected" : ""}>
+                                    <option
+                                        value="${sec}"
+                                        ${sec === selectedSection
+                                            ? "selected"
+                                            : ""}>
                                         ${sec}
                                     </option>
                                 `).join("")}
@@ -498,7 +837,7 @@
                         <thead>
                             <tr>
                                 <th>Student ID</th>
-                                <th>Student Name</th>
+                                <th>Name</th>
                                 <th>Gender</th>
                                 <th>Status</th>
                                 <th>Date</th>
@@ -509,7 +848,9 @@
                         <tbody>
                 `;
 
-                grouped[section].forEach(report => {
+                grouped[
+                    section
+                ].forEach(report => {
 
                     html += `
                         <tr>
@@ -530,20 +871,69 @@
                 `;
             }
 
-            if (data.length === 0) {
-                html += `<p>No attendance records found.</p>`;
+            if (
+                data.length === 0
+            ) {
+
+                html += `
+                    <p>
+                        No attendance records found.
+                    </p>
+                `;
             }
 
             html += `</div>`;
 
-            document.getElementById("mainContent").innerHTML = html;
+            document.getElementById(
+                "mainContent"
+            ).innerHTML = html;
         })
-        .catch(err => {
-            console.error(err);
 
-            alert("Failed to load reports.");
+        .catch(err => {
+
+            console.error(
+                "REPORT ERROR:",
+                err
+            );
+
+            alert(
+                "Failed to load reports."
+            );
         });
 }
+
+
+function openEmailSentModal() {
+
+
+    document.getElementById(
+        "emailSentModal"
+    ).style.display = "flex";
+}
+
+
+function closeEmailSentModal() {
+
+
+    document.getElementById(
+        "emailSentModal"
+    ).style.display = "none";
+}
+
+function openSingleAttendanceModal() {
+
+    document.getElementById(
+        "singleAttendanceModal"
+    ).style.display = "flex";
+}
+
+function closeSingleAttendanceModal() {
+
+    document.getElementById(
+        "singleAttendanceModal"
+    ).style.display = "none";
+}
+
 
     // ======================================
     function logout(){
@@ -551,19 +941,25 @@
         window.location.href = "index.html";
     }
 
+
     function showLogoutModal() {
+
 
     document.getElementById("logoutModal").style.display =
         "flex";
 }
 
+
 function closeLogoutModal() {
+
 
     document.getElementById("logoutModal").style.display =
         "none";
 }
 
+
     loadStudents();
+
 
     function formatDateMMDDYYYY(dateStr) {
         const d = new Date(dateStr);
@@ -571,30 +967,41 @@ function closeLogoutModal() {
         const dd = String(d.getDate()).padStart(2, "0");
         const yyyy = d.getFullYear();
 
+
         return `${mm}/${dd}/${yyyy}`;
     }
 
+
     function formatTime12Hour(timeStr) {
 
+
     if (!timeStr) return "";
+
 
     // already contains AM/PM
     if (/AM|PM/i.test(timeStr)) {
         return timeStr.trim();
     }
 
+
     const [hourStr, min] = timeStr.split(":");
+
 
     let hour = parseInt(hourStr, 10);
 
+
     const period = hour >= 12 ? "PM" : "AM";
 
+
     hour = hour % 12 || 12;
+
 
     return `${hour}:${min} ${period}`;
 }
 
+
 </script>
 
+
 </body>
-</html> 
+</html>

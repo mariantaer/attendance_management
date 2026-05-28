@@ -709,14 +709,19 @@
             fetch(`${API}/admin/teachers/${deletingTeacherId}`, {
                 method: "DELETE"
             })
-            .then(res => res.json())
-            .then(data => {
+            .then(async res => {
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    throw new Error(data.message);
+                }
 
                 document.getElementById("modalTitle").innerText =
                     "Deleted";
 
                 document.getElementById("modalMessage").innerText =
-                    data.message || "Teacher deleted successfully.";
+                    data.message;
 
                 document.getElementById("modalActions").innerHTML = `
                     <button class="save-btn"
@@ -724,6 +729,13 @@
                         OK
                     </button>
                 `;
+
+                document.getElementById("studentModal").style.display =
+                    "flex";
+            })
+            .catch(err => {
+                console.error("DELETE TEACHER ERROR:", err);
+                alert(err.message || "Failed to delete teacher");
             });
         }
 
