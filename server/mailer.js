@@ -1,52 +1,56 @@
 const nodemailer = require("nodemailer");
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: "ptc.attendance.system@gmail.com",
-        pass: "eaiy vjpi zxmx sgcc"
+const transporter =
+    nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+            user:
+                "attendance.mngt.system@gmail.com",
 
-    }
-});
+            pass:
+                "czptabfupnnpnjuz"
+        }
+    });
 
 async function sendEmail(
     to,
     subject,
     html
 ) {
-
-    // stop blank/null emails
-    if (
-        !to ||
-        typeof to !== "string" ||
-        to.trim() === ""
-    ) {
-        console.log(
-            "Email skipped: no recipient"
+    if (!to || to.trim() === "") {
+        throw new Error(
+            "No recipient email"
         );
-        return;
     }
 
     try {
+        const info =
+            await transporter.sendMail({
+                from:
+                    '"Attendance Management System" <attendance.mngt.system@gmail.com>',
 
-        await transporter.sendMail({
-            from: "ptc.attendance.system@gmail.com",
-            to: to.trim(),
-            subject,
-            html
-        });
+                to: to.trim(),
+
+                subject,
+
+                html
+            });
 
         console.log(
-            "Email sent to:",
-            to
+            "EMAIL SENT:",
+            info.response
         );
+
+        return info;
 
     } catch (err) {
 
-        console.error(
+        console.log(
             "EMAIL ERROR:",
             err.message
         );
+
+        throw err;
     }
 }
 

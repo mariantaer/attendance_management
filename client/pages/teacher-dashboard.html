@@ -240,8 +240,7 @@
 
 
     // use DB primary key
-    selectedStudentId = student.id;
-
+    selectedStudentId = student.student_id;
 
     selectedStudentName = student.full_name;
 
@@ -510,19 +509,22 @@
 
 
                             <td>
-                                <input type="time"
-                                    id="time-${student.id}"
-                                    style="padding:5px">
-                            </td>
+                            <label for="time-${student.id}" class="sr-only">Time In</label>
+                            <input type="time"
+                                id="time-${student.id}"
+                                name="time-${student.id}"
+                                style="padding:5px">
+                        </td>
 
 
                             <td>
-                                <select id="status-${student.id}">
-                                    <option value="Present">Present</option>
-                                    <option value="Absent">Absent</option>
-                                    <option value="Late">Late</option>
-                                </select>
-                            </td>
+                            <label for="status-${student.id}" class="sr-only">Status</label>
+                            <select id="status-${student.id}" name="status-${student.id}">
+                                <option value="Present">Present</option>
+                                <option value="Absent">Absent</option>
+                                <option value="Late">Late</option>
+                            </select>
+                        </td>
                         </tr>
                     `;
                 });
@@ -549,171 +551,117 @@
     // ======================================
     function saveAttendance() {
 
-    const rows =
-        document.querySelectorAll(
-            "select[id^='status-']"
-        );
-
+    const rows = document.querySelectorAll("select[id^='status-']");
     const requests = [];
 
     rows.forEach(select => {
 
-        const studentId =
-            select.id.replace(
-                "status-",
-                ""
-            );
+        const studentId = select.id.replace("status-", "");
+        const status = select.value;
 
-        const status =
-            select.value;
+        const timeInput = document.getElementById(`time-${studentId}`);
+        const time24 = timeInput ? timeInput.value : "";
 
-        const timeInput =
-            document.getElementById(
-                `time-${studentId}`
-            );
-
-        const time24 =
-            timeInput
-                ? timeInput.value
-                : "";
-
-        // SKIP IF NO TIME
-        if (!time24) {
-            return;
-        }
+        if (!time24) return;
 
         requests.push(
-
-            fetch(
-                `${API}/attendance/mark`,
-                {
-                    method: "POST",
-
-                    headers: {
-                        "Content-Type":
-                            "application/json"
-                    },
-
-                    body: JSON.stringify({
-
-                        student_id:
-                            studentId,
-
-                        status:
-                            status,
-
-                        time:
-                            time24
-                    })
-                }
-            )
+            fetch(`${API}/attendance/mark`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    status,
+                    time: time24
+                })
+            })
         );
     });
 
     Promise.all(requests)
-
-        .then(async responses => {
-
-            for (const res of responses) {
-
-                const data =
-                    await res.json();
-
-                console.log(data);
-            }
-
+        .then(responses => Promise.all(responses.map(r => r.json())))
+        .then(data => {
+            console.log(data);
             openEmailSentModal();
         })
-
         .catch(err => {
-
-            console.error(
-                "ERROR:",
-                err
-            );
-
-            alert(
-                "Failed to save attendance."
-            );
-        });
-
-
-        Promise.all(requests)
-
-        .then(async responses => {
-
-            for (const res of responses) {
-
-                const data = await res.json();
-
-                console.log(data);
-
-            }
-
-            openEmailSentModal();
-
-        })
-
-
-        .then(res => res.text())
-
-
-        .then(() => {
-
-
-            openEmailSentModal();
-
-
-        })
-
-
-        .catch(err => {
-
-
-            console.error(
-                "ERROR:",
-                err
-            );
-
-
-            alert(
-                "Failed to save attendance or send email."
-            );
+            console.error(err);
+            alert("Failed to save attendance or send email.");
         });
 }
 
 
-function sendAttendanceEmails() {
+async function sendAttendanceEmail(
+    student,
+    status,
+    date,
+    time
+) {
+    const subject =
+        "Attendance Confirmation";
 
+    const html = `
+        <h2>Attendance Confirmation</h2>
 
-    fetch(`${API}/attendance/send-emails`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
+        <p><b>Student ID:</b>
+        ${student.student_id}</p>
+
+        <p><b>Name:</b>
+        ${student.full_name}</p>
+
+        <p><b>Section:</b>
+        ${student.section}</p>
+
+        <p><b>Status:</b>
+        ${status}</p>
+
+        <p><b>Date:</b>
+        ${date}</p>
+
+        <p><b>Time:</b>
+        ${time}</p>
+    `;
+
+    try {
+
+        // STUDENT EMAIL
+        if (student.student_email) {
+
+            console.log(
+                "Sending to student:",
+                student.student_email
+            );
+
+            await sendEmail(
+                student.student_email.trim(),
+                subject,
+                html
+            );
         }
-    })
-    .then(res => res.text())
-    .then(() => {
 
+        // PARENT EMAIL
+        if (student.parent_email) {
 
-        openEmailSentModal();
+            console.log(
+                "Sending to parent:",
+                student.parent_email
+            );
 
+            await sendEmail(
+                student.parent_email.trim(),
+                subject,
+                html
+            );
+        }
 
-    })
-   
-    .catch(err => {
+    } catch (err) {
 
-
-        console.error(
-            "EMAIL ERROR:",
+        console.log(
+            "EMAIL SEND FAILED:",
             err
         );
 
-
-        alert(
-            "Failed to send emails."
-        );
-    });
+        throw err;
+    }
 }
 
 
